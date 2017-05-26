@@ -1,9 +1,3 @@
----
-services: Microsoft Graph 
-platforms: dotnet
-author: madange
----
-
 # ConsoleApp-MicrosoftGraphAPI-DeltaQuery-DotNet
 
 This console application demonstrates how to make Delta Query calls to the Graph API, allowing applications to request only changed data from Microsoft Graph tenants.
