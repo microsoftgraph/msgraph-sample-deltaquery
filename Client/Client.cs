@@ -248,33 +248,6 @@ namespace DeltaQueryClient
             operation();
         }
 
-        /// <summary>
-        /// Access token format.
-        /// </summary>
-        [DataContract]
-        private class AccessTokenFormat
-        {
-            /// <summary>
-            /// Gets or sets the token type.
-            /// </summary>
-            [SuppressMessage(
-                "Microsoft.StyleCop.CSharp.NamingRules",
-                "SA1300:ElementMustBeginWithUpperCaseLetter",
-                Justification = "JSON key name")]
-            [DataMember]
-            internal string token_type { get; set; }
-
-            /// <summary>
-            /// Gets or sets the access token.
-            /// </summary>
-            [SuppressMessage(
-                "Microsoft.StyleCop.CSharp.NamingRules",
-                "SA1300:ElementMustBeginWithUpperCaseLetter",
-                Justification = "JSON key name")]
-            [DataMember]
-            internal string access_token { get; set; }
-        }
-
         #endregion
     }
 }
