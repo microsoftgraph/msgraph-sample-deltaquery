@@ -44,8 +44,6 @@
     <Compile Include="Constants.cs" />
     <Compile Include="ILogger.cs" />
     <Compile Include="DeltaQueryResult.cs" />
-    <Compile Include="ParsedException.cs" />
-    <Compile Include="XmlErrorResponse.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config">
