@@ -9,6 +9,7 @@ The sample uses a application-only permission, however delegated-permissions sho
 
 To run this sample you will need:
 - Visual Studio 2015
+- .Net 4.5
 - An Internet connection
 - An Azure Active Directory (Azure AD) tenant. For more information on how to get an Azure AD tenant, please see [How to get an Azure AD tenant](https://azure.microsoft.com/en-us/documentation/articles/active-directory-howto-tenant/) 
 
@@ -22,16 +23,11 @@ From your shell or command line:
 
 #### Register Sample app for your own tenant
 
-1. Sign in to the [Azure portal](https://portal.azure.com).
-2. On the top bar, click on your account and under the **Directory** list, choose the Active Directory tenant where you wish to register your application.
-3. Click on **More Services** in the left hand nav, and choose **Azure Active Directory**.
-4. Click on **App registrations** and choose **Add**.
-5. Enter a friendly name for the application, for example 'WebApp for Azure AD' and select 'Web Application and/or Web API' as the Application Type. For the sign-on URL, enter the base URL for the sample, which is by default `https://localhost:44322`. Click on **Create** to create the application.
-6. While still in the Azure portal, choose your application, click on **Settings** and choose **Properties**.
-7. Find the Application ID value and copy it to the clipboard.
-8. For the App ID URI, enter `https://<your_tenant_name>/WebAppGraphAPI`, replacing `<your_tenant_name>` with the domain name of your Azure AD tenant. For example "https://contoso.com/WebAppGraphAPI".
-9. From the settings page, click on 'Reply URLs' and add the reply URL address used to return the authorization code returned during Authorization code flow.  For example: "https://localhost:44322/".
-10. Configure Permissions for your application - in the Settings menu, choose the 'Required permissions' section, click on **Add**, then **Select an API**, and select 'Microsoft Graph' (this is the Graph API). Then, click on  **Select Permissions** and select 'Read Directory Data'.
+Using MSAL
+1.Before you can get a token from Azure AD v2.0 or Azure AD B2C, you'll need to register an application(https://apps.dev.microsoft.com/). For Azure AD v2.0, use the app registration portal. For Azure AD B2C, checkout how to register your app with B2C.
+2. Find the Application ID value and copy it to the clipboard.
+3. Configure Permissions for your application - select 'Read Directory Data'.
+4. Set a platform by clicking Add Platform, select Native.
 
 
 ###  Step 3: Setup sample project
@@ -67,5 +63,6 @@ If you have a feature suggestion, please post your idea on our [User Voice](http
 * [Working with Delta Query in Microsoft Graph](https://developer.microsoft.com/en-us/graph/docs/concepts/delta_query_overview)
 * [Microsoft Graph developer site](https://developer.microsoft.com/en-us/graph/)
 * [Call Microsoft Graph in an ASP.NET MVC app](https://developer.microsoft.com/en-us/graph/docs/platform/aspnetmvc)
+* [MSAL Sample](https://github.com/AzureAD/microsoft-authentication-library-for-dotnet)
 
 Copyright (c) 2017 Microsoft Corporation. All rights reserved.
