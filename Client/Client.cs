@@ -35,6 +35,9 @@ namespace DeltaQueryClient
     using System.Web;
     using System.Web.Script.Serialization;
     using Microsoft.IdentityModel.Clients.ActiveDirectory;
+    using Microsoft.Identity.Client;
+    using System.Threading.Tasks;
+    using System.Security.Claims;
 
     /// <summary>
     /// Sample implementation of obtaining changes from graph using Delta Query.
@@ -62,13 +65,11 @@ namespace DeltaQueryClient
         public Client(
             string tenantDomainName,
             string appPrincipalId,
-            string appPrincipalPassword,
             ILogger logger)
         {
             this.ReadConfiguration();
             this.tenantDomainName = tenantDomainName;
             this.appPrincipalId = appPrincipalId;
-            this.appPrincipalPassword = appPrincipalPassword;
             this.logger = logger;
         }
 
@@ -96,11 +97,6 @@ namespace DeltaQueryClient
         /// Gets or sets the service principal ID for your application.
         /// </summary>
         private string appPrincipalId { get; set; }
-
-        /// <summary>
-        /// Gets or sets the service principal password for your application.
-        /// </summary>
-        private string appPrincipalPassword { get; set; }
 
         /// <summary>
         /// Calls the Delta Query service and returns the result.
@@ -155,20 +151,21 @@ namespace DeltaQueryClient
 
         #region helpers
         /// <summary>
-        /// Get Token for Application.
+        /// Get Token for User.
         /// </summary>
-        /// <returns>Token for application.</returns>
-        protected string GetTokenForApplication()
+        /// <returns>Token for user.</returns>
+        public async Task<string> GetAccessToken()
         {
-            string authEndpoint = string.Format(Constants.AuthEndpoint, this.tenantDomainName);
-            AuthenticationContext authenticationContext = new AuthenticationContext(authEndpoint, false);
-            
-            // Config for OAuth client credentials 
-            ClientCredential clientCred = new ClientCredential(this.appPrincipalId, this.appPrincipalPassword);
-            AuthenticationResult authenticationResult = authenticationContext.AcquireToken(this.protectedResourcePrincipalId, clientCred);
+            // Used MSAL for auth
+            MsalAuthHelper _msalHelper = new MsalAuthHelper(this.appPrincipalId);
+            IUser user = null;
+            user = await _msalHelper.SignIn().ConfigureAwait(false);
 
-            return authenticationResult.AccessToken;
+            string token = await _msalHelper.GetTokenForCurrentUser(new[] { "Directory.Read.All" }, user)
+                   .ConfigureAwait(false);
+                return token;          
         }
+    
 
         /// <summary>
         /// Returns a string that can logged given a <see cref="NameValueCollection"/>.
@@ -202,7 +199,7 @@ namespace DeltaQueryClient
         /// <param name="webClient">Web client to add the required headers to.</param>
         private void AddHeaders(WebClient webClient)
         {
-            webClient.Headers.Add(Constants.HeaderNameAuthorization, this.GetTokenForApplication());
+            webClient.Headers.Add(Constants.HeaderNameAuthorization, this.GetAccessToken().Result);
             webClient.Headers.Add(HttpRequestHeader.Accept, "application/json");
         }
 
@@ -213,7 +210,7 @@ namespace DeltaQueryClient
         /// <param name="entitySet">Entity 
         /// to be used to construct the URI.</param>
         /// <returns>Byte array containing the downloaded URI.</returns>
-        private byte[] DownloadData(WebClient webClient, string entitySet , string skiptoken)
+        private byte[] DownloadData(WebClient webClient, string entitySet, string skiptoken)
         {
             this.AddHeaders(webClient);
             string serviceEndPoint = null;
@@ -225,7 +222,8 @@ namespace DeltaQueryClient
                 this.apiVersion,
                 entitySet);
             }
-            else {
+            else
+            {
                 serviceEndPoint = skiptoken;
             }
 

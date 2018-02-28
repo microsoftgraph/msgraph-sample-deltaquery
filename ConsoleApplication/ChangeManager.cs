@@ -46,7 +46,6 @@ namespace DeltaQueryApplication
         private static readonly Client client = new Client(
                 ConfigurationManager.AppSettings["TenantDomainName"],
                 ConfigurationManager.AppSettings["AppPrincipalId"],
-                ConfigurationManager.AppSettings["AppPrincipalPassword"],
                 Logger.DefaultLogger);
 
         /// <summary>
