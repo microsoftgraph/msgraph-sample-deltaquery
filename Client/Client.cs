@@ -21,23 +21,15 @@
 
 namespace DeltaQueryClient
 {
+    using Microsoft.Identity.Client;
     using System;
     using System.Collections.Generic;
     using System.Collections.Specialized;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.IO;
     using System.Linq;
     using System.Net;
-    using System.Runtime.Serialization;
-    using System.Runtime.Serialization.Json;
     using System.Text;
-    using System.Web;
-    using System.Web.Script.Serialization;
-    using Microsoft.IdentityModel.Clients.ActiveDirectory;
-    using Microsoft.Identity.Client;
     using System.Threading.Tasks;
-    using System.Security.Claims;
+    using System.Web.Script.Serialization;
 
     /// <summary>
     /// Sample implementation of obtaining changes from graph using Delta Query.
