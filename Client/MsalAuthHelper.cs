@@ -21,11 +21,10 @@
 
 namespace DeltaQueryClient
 {
+    using Microsoft.Identity.Client;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Microsoft.Identity.Client;
-    using System.Windows.Forms;
     using System.Windows.Forms;
 
     class MsalAuthHelper
