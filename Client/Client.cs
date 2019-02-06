@@ -146,14 +146,14 @@ namespace DeltaQueryClient
         /// Get Token for User.
         /// </summary>
         /// <returns>Token for user.</returns>
-        public async Task<string> GetAccessToken()
+        public async Task<string> GetAccessTokenAsync()
         {
             // Used MSAL for auth
             MsalAuthHelper _msalHelper = new MsalAuthHelper(this.appPrincipalId);
-            IUser user = null;
-            user = await _msalHelper.SignIn().ConfigureAwait(false);
+            IAccount user = null;
+            user = await _msalHelper.SignInAsync().ConfigureAwait(false);
 
-            string token = await _msalHelper.GetTokenForCurrentUser(new[] { "Directory.Read.All" }, user)
+            string token = await _msalHelper.GetTokenForCurrentUserAsync(new[] { "Directory.Read.All" }, user)
                    .ConfigureAwait(false);
                 return token;          
         }
@@ -191,7 +191,7 @@ namespace DeltaQueryClient
         /// <param name="webClient">Web client to add the required headers to.</param>
         private void AddHeaders(WebClient webClient)
         {
-            webClient.Headers.Add(Constants.HeaderNameAuthorization, this.GetAccessToken().Result);
+            webClient.Headers.Add(Constants.HeaderNameAuthorization, this.GetAccessTokenAsync().Result);
             webClient.Headers.Add(HttpRequestHeader.Accept, "application/json");
         }
 

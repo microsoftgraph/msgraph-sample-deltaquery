@@ -39,13 +39,13 @@ namespace DeltaQueryClient
             Application = new PublicClientApplication(_clientId, "https://login.microsoftonline.com/common/");
         }
 
-        public async Task<IUser> SignIn()
+        public async Task<IAccount> SignInAsync()
 
         {
             try
             {
                 AuthenticationResult result = await Application.AcquireTokenAsync(new[] { "Directory.Read.All" }).ConfigureAwait(false);
-                return result.User;
+                return result.Account;
             }
 
             catch (Exception exc)
@@ -56,7 +56,7 @@ namespace DeltaQueryClient
             return null;
         }
 
-        public async Task<string> GetTokenForCurrentUser(IEnumerable<string> scopes, IUser user)
+        public async Task<string> GetTokenForCurrentUserAsync(IEnumerable<string> scopes, IAccount user)
 
         {
 
@@ -70,7 +70,7 @@ namespace DeltaQueryClient
                 return result.AccessToken;
             }
 
-            catch (MsalUiRequiredException exc)
+            catch (MsalUiRequiredException)
 
             {
                 try
