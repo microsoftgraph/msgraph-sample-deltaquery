@@ -49,11 +49,6 @@ namespace DeltaQueryApplication
                 Logger.DefaultLogger);
 
         /// <summary>
-        /// JavaScript serializer.
-        /// </summary>
-        private static readonly JavaScriptSerializer _javaScriptSerializer = new JavaScriptSerializer();
-
-        /// <summary>
         /// Object handler.
         /// </summary>
         private static readonly IChangeObjectHandler _changeObjectHandler = new ChangeObjectHandler();

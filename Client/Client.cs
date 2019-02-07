@@ -24,23 +24,15 @@ namespace DeltaQueryClient
     using Microsoft.Identity.Client;
     using System;
     using System.Collections.Generic;
-    using System.Collections.Specialized;
     using System.Linq;
     using System.Net;
-    using System.Text;
-    using System.Threading.Tasks;
-    using System.Web.Script.Serialization;
+    using Microsoft.Graph;
 
     /// <summary>
     /// Sample implementation of obtaining changes from graph using Delta Query.
     /// </summary>
     public class Client
     {
-        /// <summary>
-        /// JavaScript Serializer.
-        /// </summary>
-        private static readonly JavaScriptSerializer _javascriptSerializer = new JavaScriptSerializer();
-
         /// <summary>
         /// Logger to be used for logging output/debug.
         /// </summary>
@@ -119,61 +111,76 @@ namespace DeltaQueryClient
             string stateToken,
             ICollection<string> propertyList)
         {
-            WebClient webClient = new WebClient();
 
+            List<QueryOption> options = new List<QueryOption>();
             if (propertyList.Any())
             {
-                webClient.QueryString.Add("$select", String.Join(",", propertyList));
+                foreach (string parameter in propertyList)
+                {
+                   options.Add( new QueryOption("$select", parameter));
+                }
             }
 
-            byte[] responseBytes = null;
+            String[] scopes = new[] { "Mail.Read" };
+            var authenticationProvider = GetAuthorizationProvider(scopes);
+            GraphServiceClient myClient = new GraphServiceClient(authenticationProvider);
+            var graphResult = myClient.Me.MailFolders.Delta().Request(options).GetAsync().Result;
+            List<object> resultObjectList = new List<object>();
 
-            this.InvokeOperation(
-                () => { responseBytes = DownloadData(webClient, entitySet, stateToken); });
-
-            if (responseBytes != null)
+            if (stateToken == null)
             {
-                return new DeltaQueryResult(
-                    _javascriptSerializer.DeserializeObject(
-                        Encoding.UTF8.GetString(responseBytes)) as Dictionary<string, object>);
+                //There is a no valid state so this is a new request
+                for (int i = 0; i < graphResult.Count; i++)
+                {
+                    Dictionary<string, object> resultObject = new Dictionary<string, object>();
+                    resultObject.Add("id", graphResult[i].Id);
+                    resultObjectList.Add(resultObject);
+                }
+
+                //check if there are more pages of data
+                while (graphResult.NextPageRequest != null)
+                {
+                    graphResult = graphResult.NextPageRequest.GetAsync().Result;
+                    for (int i = 0; i < graphResult.Count; i++)
+                    {
+                        Dictionary<string, object> resultObject = new Dictionary<string, object>();
+                        resultObject.Add("id", graphResult[i].Id);
+                        resultObjectList.Add(resultObject);
+                    }
+                }
             }
-
-            return null;
-        }
-
-        #region helpers
-        /// <summary>
-        /// Get Token for User.
-        /// </summary>
-        /// <returns>Token for user.</returns>
-        public async Task<string> GetAccessTokenAsync()
-        {
-            // Used MSAL for auth
-            MsalAuthHelper _msalHelper = new MsalAuthHelper(this.appPrincipalId);
-            IAccount user = null;
-            user = await _msalHelper.SignInAsync().ConfigureAwait(false);
-
-            string token = await _msalHelper.GetTokenForCurrentUserAsync(new[] { "Directory.Read.All" }, user)
-                   .ConfigureAwait(false);
-                return token;          
-        }
-    
-
-        /// <summary>
-        /// Returns a string that can logged given a <see cref="NameValueCollection"/>.
-        /// </summary>
-        /// <param name="queryParameters">Query parameters to be logged.</param>
-        /// <returns>String to be logged.</returns>
-        private static string LogQueryParameters(NameValueCollection queryParameters)
-        {
-            string logString = string.Empty;
-            foreach (string key in queryParameters.AllKeys)
+            else
             {
-                logString = String.Join("&", logString, String.Join("=", key, queryParameters[key]));
+                //There is a valid state token to check for query changes
+                graphResult.InitializeNextPageRequest(myClient,stateToken);
+                graphResult = graphResult.NextPageRequest.GetAsync().Result;
+                for (int i = 0; i < graphResult.Count; i++)
+                {
+                    Dictionary<string, object> resultObject = new Dictionary<string, object>();
+                    resultObject.Add("id", graphResult[i].Id);
+                    object removedReason;
+                    if (graphResult.AdditionalData.TryGetValue("@removed", out removedReason))
+                    {
+                        resultObject.Add("@removed", removedReason);
+                    }
+                    resultObjectList.Add(resultObject);
+                }
             }
 
-            return logString;
+            object deltaLink;
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            if (graphResult.AdditionalData.TryGetValue(Constants.DeltaLinkFeedAnnotation, out deltaLink))
+            {
+                result.Add(Constants.DeltaLinkFeedAnnotation,deltaLink);
+            }
+            
+            result.Add("value", resultObjectList.ToArray<object>());
+
+            return new DeltaQueryResult(result);
+           
         }
+
+        #region helpers   
 
         /// <summary>
         /// Reads the client configuration.
@@ -186,58 +193,13 @@ namespace DeltaQueryClient
         }
 
         /// <summary>
-        /// Adds the required headers to the specified web client.
+        /// Returns a valid IAuthenticationProvider object to be used for creating a GraphClient
         /// </summary>
-        /// <param name="webClient">Web client to add the required headers to.</param>
-        private void AddHeaders(WebClient webClient)
+        private IAuthenticationProvider GetAuthorizationProvider(String [] scopes)
         {
-            webClient.Headers.Add(Constants.HeaderNameAuthorization, this.GetAccessTokenAsync().Result);
-            webClient.Headers.Add(HttpRequestHeader.Accept, "application/json");
-        }
-
-        /// <summary>
-        /// Constructs the URI with the specified entitySet and downloads it with the specified web client.
-        /// </summary>
-        /// <param name="webClient">Web client to be used to download the URI.</param>
-        /// <param name="entitySet">Entity 
-        /// to be used to construct the URI.</param>
-        /// <returns>Byte array containing the downloaded URI.</returns>
-        private byte[] DownloadData(WebClient webClient, string entitySet, string skiptoken)
-        {
-            this.AddHeaders(webClient);
-            string serviceEndPoint = null;
-            if (string.IsNullOrEmpty(skiptoken))
-            {
-                serviceEndPoint = string.Format(
-                @"https://{0}/{1}/{2}/delta",
-                this.azureADServiceHost,
-                this.apiVersion,
-                entitySet);
-            }
-            else
-            {
-                serviceEndPoint = skiptoken;
-            }
-
-            // Log the query string and endpoint.
-            if (this.logger != null)
-            {
-                this.logger.LogDebug("Making call to endpoint : {0}", serviceEndPoint);
-                this.logger.LogDebug("Query Parameters : {0}", LogQueryParameters(webClient.QueryString));
-            }
-
-            return webClient.DownloadData(serviceEndPoint);
-        }
-
-        /// <summary>
-        /// Delegate to invoke the specified operation.
-        /// </summary>
-        /// <param name="operation">Operation to invoke.</param>
-        private void InvokeOperation(Action operation)
-        {
-            // - retry mechanism to be implemented
-            //
-            operation();
+            String authority = "https://login.microsoftonline.com/common";
+            PublicClientApplication clientApplication = new PublicClientApplication(this.appPrincipalId, authority);
+            return new MsalAuthenticationProvider(clientApplication, scopes); ;
         }
 
         #endregion

@@ -23,8 +23,6 @@ namespace DeltaQueryClient
 {
     using System;
     using System.Collections.Generic;
-    using System.Globalization;
-    using System.Text.RegularExpressions;
 
     /// <summary>
     /// Response from Delta Query service.
@@ -44,12 +42,7 @@ namespace DeltaQueryClient
                 throw new ArgumentNullException("response");
             }
 
-            if (response.ContainsKey(Constants.NextLinkFeedAnnotation))
-            {
-                this.StateToken = response[Constants.NextLinkFeedAnnotation].ToString();
-                this.More = true;
-            }
-            else if (response.ContainsKey(Constants.DeltaLinkFeedAnnotation))
+            if (response.ContainsKey(Constants.DeltaLinkFeedAnnotation))
             {
                 this.StateToken = response[Constants.DeltaLinkFeedAnnotation].ToString();
                 this.More = false;

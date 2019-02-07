@@ -26,21 +26,15 @@ From your shell or command line:
 Using MSAL
 1.Before you can get a token from Azure AD v2.0 or Azure AD B2C, you'll need to register an application(https://apps.dev.microsoft.com/). For Azure AD v2.0, use the app registration portal. For Azure AD B2C, checkout how to register your app with B2C.
 2. Find the Application ID value and copy it to the clipboard.
-3. Configure Permissions for your application - select 'Read Directory Data'.
+3. Configure Permissions for your application - select 'Read Mail'.
 4. Set a platform by clicking Add Platform, select Native.
 
 
 ###  Step 3: Setup sample project
 
-1. In Solution Explorer, select the **App.config** project.
+1. In Solution Explorer, select and edit the **App.config** in the ConsoleApplication project.
 
 	a. For the `AppPrincipalId` key, replace `To be filled in` with the application ID of your registered Azure application.
-	
-	b. For the `AppPrincipalPassword` key, replace `To be filled in` with the key of your registered Azure application.  
-	
-	c. For the `TenantDomainName` key, replace `To be filled in` with domain name of your organization.
-
-    d. For the `EntitySet` key , you can use delta query supported MS-graph entities e.g `users` ,`groups` etc. as value.
 
 <a name="contributing"></a>
 ## Contributing ##
