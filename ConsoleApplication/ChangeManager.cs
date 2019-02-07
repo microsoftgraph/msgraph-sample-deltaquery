@@ -23,10 +23,8 @@ namespace DeltaQueryApplication
 {
     using System;
     using System.Collections.Generic;
-    using System.Configuration;
     using System.IO;
     using System.Threading;
-    using System.Web.Script.Serialization;
     using DeltaQueryClient;
     using System.Collections;
 
@@ -41,14 +39,6 @@ namespace DeltaQueryApplication
         private static readonly TokenManager _tokenManager = new TokenManager();
 
         /// <summary>
-        /// Delta Query client.
-        /// </summary>
-        private static readonly Client client = new Client(
-                ConfigurationManager.AppSettings["TenantDomainName"],
-                ConfigurationManager.AppSettings["AppPrincipalId"],
-                Logger.DefaultLogger);
-
-        /// <summary>
         /// Object handler.
         /// </summary>
         private static readonly IChangeObjectHandler _changeObjectHandler = new ChangeObjectHandler();
@@ -61,16 +51,14 @@ namespace DeltaQueryApplication
         /// <summary>
         /// Calls the Delta Query service and processes the result.
         /// </summary>
-        public void DeltaQuery()
+        public void DeltaQuery(AppConfiguration appConfiguration)
         {
             Logger.DefaultLogger.LogDebug(
-                "Delta Query initialized for tenant {0}, with appPrincipalId {1}.",
-                ConfigurationManager.AppSettings["TenantDomainName"],
-                ConfigurationManager.AppSettings["AppPrincipalId"]);
+                "Delta Query initialized with appPrincipalId {0}.",
+                appConfiguration.AppPrincipalId);
 
-            int pullIntervalSec = int.Parse(ConfigurationManager.AppSettings["PullIntervalSec"]);
+            int pullIntervalSec = appConfiguration.PullIntervalSec;
             int retryAfterFailureIntervalSec = pullIntervalSec;
-            string entitySet = ConfigurationManager.AppSettings["EntitySet"];
             string outputFilePath = Path.Combine(
                 Environment.CurrentDirectory,
                 "DeltaQueryResult" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
@@ -83,13 +71,15 @@ namespace DeltaQueryApplication
             string stateToken = _tokenManager.Read();
             int retries = 0;
 
+            Client client = new Client(appConfiguration.Scopes, appConfiguration.AppPrincipalId, Logger.DefaultLogger);
+
             while (true)
             {
                 DeltaQueryResult result;
 
                 try
                 {
-                    result = client.DeltaQuery(stateToken, entitySet);
+                    result = client.DeltaQuery(stateToken, appConfiguration.Scopes);
                 }
                 catch (Exception e)
                 {

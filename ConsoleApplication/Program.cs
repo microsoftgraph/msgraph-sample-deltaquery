@@ -21,6 +21,8 @@
 
 namespace DeltaQueryApplication
 {
+    using System.Configuration;
+
     /// <summary>
     /// Delta Query sample console application
     /// </summary>
@@ -31,8 +33,34 @@ namespace DeltaQueryApplication
         /// </summary>
         private static void Main()
         {
+            AppConfiguration appConfiguration = AppConfiguration.GetConfiguration();
             IChangeManager changeManager = new ChangeManager();
-            changeManager.DeltaQuery();
+            changeManager.DeltaQuery(appConfiguration);
         }
+    }
+
+
+    /// <summary>
+    /// Class to hold the app configurations read from the file
+    /// </summary>
+    public class AppConfiguration
+    {
+        public static AppConfiguration GetConfiguration()
+        {
+            var appConfig = new AppConfiguration()
+            {
+                AppPrincipalId = ConfigurationManager.AppSettings["AppPrincipalId"],
+                PullIntervalSec = int.Parse(ConfigurationManager.AppSettings["PullIntervalSec"]),
+                Scopes = ConfigurationManager.AppSettings["Scopes"].Split(','),
+                AppVersion = ConfigurationManager.AppSettings["AppVersion"],
+            };
+
+            return appConfig;
+        }
+        
+        public string AppPrincipalId { get; set; }
+        public string AppVersion { get; set; }
+        public int PullIntervalSec { get; set; }
+        public string [] Scopes { get; set; }
     }
 }

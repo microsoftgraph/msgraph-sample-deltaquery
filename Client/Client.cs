@@ -25,7 +25,6 @@ namespace DeltaQueryClient
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net;
     using Microsoft.Graph;
 
     /// <summary>
@@ -41,20 +40,21 @@ namespace DeltaQueryClient
         /// <summary>
         /// Initializes a new instance of the <see cref="Client"/> class.
         /// </summary>
-        /// <param name="tenantDomainName">Windows Azure AD tenant domain name.</param>
+        /// <param name="scopes">Scopes needed by the app to run</param>
         /// <param name="appPrincipalId">Service principal ID.</param>
         /// <param name="appPrincipalPassword">Service principal password.</param>
         /// <param name="logger">Logger to be used for logging output/debug.</param>
         /// <param name="authToken"></param>
         public Client(
-            string tenantDomainName,
+            string [] scopes,
             string appPrincipalId,
             ILogger logger)
         {
             this.ReadConfiguration();
-            this.tenantDomainName = tenantDomainName;
+            this.scopes = scopes;
             this.appPrincipalId = appPrincipalId;
             this.logger = logger;
+            this.graphServiceClient = new GraphServiceClient(GetAuthorizationProvider(scopes, authority));
         }
 
         /// <summary>
@@ -73,14 +73,24 @@ namespace DeltaQueryClient
         private string protectedResourcePrincipalId { get; set; }
 
         /// <summary>
-        /// Gets or sets the Windows Azure AD tenant domain name.
+        /// Gets or sets the scopes needed by the app.
         /// </summary>
-        private string tenantDomainName { get; set; }
+        private string [] scopes { get; set; }
 
         /// <summary>
         /// Gets or sets the service principal ID for your application.
         /// </summary>
         private string appPrincipalId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the authority url for auth
+        /// </summary>
+        private string authority { get; set; }
+
+        /// <summary>
+        /// GraphServiceClient client used for the inner working of the graph calls
+        /// </summary>
+        private GraphServiceClient graphServiceClient { get; set; }
 
         /// <summary>
         /// Calls the Delta Query service and returns the result.
@@ -89,10 +99,9 @@ namespace DeltaQueryClient
         /// Skip token returned by a previous call to the service or <see langref="null"/>.
         /// </param>
         /// <returns>Result from the Delta Query service.</returns>
-        public DeltaQueryResult DeltaQuery(string stateToken, string entitySet)
-        {
+        public DeltaQueryResult DeltaQuery(string stateToken)
+        {       
             return this.DeltaQuery(
-                entitySet,
                 stateToken,
                 new string[0]);
         }
@@ -107,11 +116,10 @@ namespace DeltaQueryClient
         /// <param name="propertyList">List of properties to retrieve.</param>
         /// <returns>Result from the Delta Query service.</returns>
         public DeltaQueryResult DeltaQuery(
-            string entitySet,
             string stateToken,
             ICollection<string> propertyList)
         {
-
+            //Append any parameters to the query
             List<QueryOption> options = new List<QueryOption>();
             if (propertyList.Any())
             {
@@ -120,20 +128,21 @@ namespace DeltaQueryClient
                    options.Add( new QueryOption("$select", parameter));
                 }
             }
-
-            String[] scopes = new[] { "Mail.Read" };
-            var authenticationProvider = GetAuthorizationProvider(scopes);
-            GraphServiceClient myClient = new GraphServiceClient(authenticationProvider);
-            var graphResult = myClient.Me.MailFolders.Delta().Request(options).GetAsync().Result;
-            List<object> resultObjectList = new List<object>();
+            
+            //run graph query
+            var graphResult = graphServiceClient.Me.MailFolders.Delta().Request(options).GetAsync().Result;
+            List<Dictionary<string, object>> resultObjectList = new List<Dictionary<string, object>>();
 
             if (stateToken == null)
             {
-                //There is a no valid state so this is a new request
+                //There is a no valid state token so this is a new request
                 for (int i = 0; i < graphResult.Count; i++)
                 {
-                    Dictionary<string, object> resultObject = new Dictionary<string, object>();
-                    resultObject.Add("id", graphResult[i].Id);
+                    Dictionary<string, object> resultObject = new Dictionary<string, object>()
+                    {
+                        { "id", graphResult[i].Id }
+                    };
+                    //add to results
                     resultObjectList.Add(resultObject);
                 }
 
@@ -143,8 +152,11 @@ namespace DeltaQueryClient
                     graphResult = graphResult.NextPageRequest.GetAsync().Result;
                     for (int i = 0; i < graphResult.Count; i++)
                     {
-                        Dictionary<string, object> resultObject = new Dictionary<string, object>();
-                        resultObject.Add("id", graphResult[i].Id);
+                        Dictionary<string, object> resultObject = new Dictionary<string, object>()
+                        {
+                            { "id", graphResult[i].Id }
+                        };
+                        //add to results
                         resultObjectList.Add(resultObject);
                     }
                 }
@@ -152,17 +164,21 @@ namespace DeltaQueryClient
             else
             {
                 //There is a valid state token to check for query changes
-                graphResult.InitializeNextPageRequest(myClient,stateToken);
+                graphResult.InitializeNextPageRequest(graphServiceClient,stateToken);
                 graphResult = graphResult.NextPageRequest.GetAsync().Result;
                 for (int i = 0; i < graphResult.Count; i++)
                 {
-                    Dictionary<string, object> resultObject = new Dictionary<string, object>();
-                    resultObject.Add("id", graphResult[i].Id);
+                    Dictionary<string, object> resultObject = new Dictionary<string, object>()
+                    {
+                        { "id", graphResult[i].Id }
+                    };
+
                     object removedReason;
                     if (graphResult.AdditionalData.TryGetValue("@removed", out removedReason))
                     {
                         resultObject.Add("@removed", removedReason);
                     }
+                    //add to results
                     resultObjectList.Add(resultObject);
                 }
             }
@@ -174,10 +190,9 @@ namespace DeltaQueryClient
                 result.Add(Constants.DeltaLinkFeedAnnotation,deltaLink);
             }
             
-            result.Add("value", resultObjectList.ToArray<object>());
+            result.Add("value", resultObjectList.ToArray<Dictionary<string, object>>());
 
             return new DeltaQueryResult(result);
-           
         }
 
         #region helpers   
@@ -190,14 +205,14 @@ namespace DeltaQueryClient
             this.azureADServiceHost = Configuration.GetElementValue("AzureADServiceHost");
             this.apiVersion = Configuration.GetElementValue("ApiVersion");
             this.protectedResourcePrincipalId = Configuration.GetElementValue("ProtectedResourcePrincipalId");
+            this.authority = Configuration.GetElementValue("Authority");
         }
 
         /// <summary>
         /// Returns a valid IAuthenticationProvider object to be used for creating a GraphClient
         /// </summary>
-        private IAuthenticationProvider GetAuthorizationProvider(String [] scopes)
+        private IAuthenticationProvider GetAuthorizationProvider(String [] scopes, String authority)
         {
-            String authority = "https://login.microsoftonline.com/common";
             PublicClientApplication clientApplication = new PublicClientApplication(this.appPrincipalId, authority);
             return new MsalAuthenticationProvider(clientApplication, scopes); ;
         }
