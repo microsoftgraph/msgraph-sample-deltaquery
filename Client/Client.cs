@@ -26,6 +26,7 @@ namespace DeltaQueryClient
     using System.Collections.Generic;
     using System.Linq;
     using Microsoft.Graph;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Sample implementation of obtaining changes from graph using Delta Query.
@@ -99,9 +100,9 @@ namespace DeltaQueryClient
         /// Skip token returned by a previous call to the service or <see langref="null"/>.
         /// </param>
         /// <returns>Result from the Delta Query service.</returns>
-        public DeltaQueryResult DeltaQuery(string stateToken)
+        public Task<DeltaQueryResult> DeltaQuery(string stateToken)
         {       
-            return this.DeltaQuery(
+            return this.DeltaQueryAsync(
                 stateToken,
                 new string[0]);
         }
@@ -115,7 +116,7 @@ namespace DeltaQueryClient
         /// </param>
         /// <param name="propertyList">List of properties to retrieve.</param>
         /// <returns>Result from the Delta Query service.</returns>
-        public DeltaQueryResult DeltaQuery(
+        public async Task<DeltaQueryResult> DeltaQueryAsync(
             string stateToken,
             ICollection<string> propertyList)
         {
@@ -130,7 +131,7 @@ namespace DeltaQueryClient
             }
             
             //run graph query
-            var graphResult = graphServiceClient.Me.MailFolders.Delta().Request(options).GetAsync().Result;
+            var graphResult = await graphServiceClient.Me.MailFolders.Delta().Request(options).GetAsync();
             List<Dictionary<string, object>> resultObjectList = new List<Dictionary<string, object>>();
 
             if (stateToken == null)
@@ -149,7 +150,7 @@ namespace DeltaQueryClient
                 //check if there are more pages of data
                 while (graphResult.NextPageRequest != null)
                 {
-                    graphResult = graphResult.NextPageRequest.GetAsync().Result;
+                    graphResult = await graphResult.NextPageRequest.GetAsync();
                     for (int i = 0; i < graphResult.Count; i++)
                     {
                         Dictionary<string, object> resultObject = new Dictionary<string, object>()
@@ -165,7 +166,7 @@ namespace DeltaQueryClient
             {
                 //There is a valid state token to check for query changes
                 graphResult.InitializeNextPageRequest(graphServiceClient,stateToken);
-                graphResult = graphResult.NextPageRequest.GetAsync().Result;
+                graphResult = await graphResult.NextPageRequest.GetAsync();
                 for (int i = 0; i < graphResult.Count; i++)
                 {
                     Dictionary<string, object> resultObject = new Dictionary<string, object>()

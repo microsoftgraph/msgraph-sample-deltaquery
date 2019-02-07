@@ -24,9 +24,9 @@ namespace DeltaQueryApplication
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Threading;
     using DeltaQueryClient;
     using System.Collections;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Defines methods to call the Delta Query service and process the results.
@@ -51,7 +51,7 @@ namespace DeltaQueryApplication
         /// <summary>
         /// Calls the Delta Query service and processes the result.
         /// </summary>
-        public void DeltaQuery(AppConfiguration appConfiguration)
+        public async Task DeltaQueryAsync(AppConfiguration appConfiguration)
         {
             Logger.DefaultLogger.LogDebug(
                 "Delta Query initialized with appPrincipalId {0}.",
@@ -79,7 +79,7 @@ namespace DeltaQueryApplication
 
                 try
                 {
-                    result = client.DeltaQuery(stateToken, appConfiguration.Scopes);
+                    result = await client.DeltaQueryAsync(stateToken, appConfiguration.Scopes);
                 }
                 catch (Exception e)
                 {
@@ -88,7 +88,7 @@ namespace DeltaQueryApplication
                         e.Message,
                         retryAfterFailureIntervalSec);
 
-                    Thread.Sleep(retryAfterFailureIntervalSec * 1000);
+                    await Task.Delay(retryAfterFailureIntervalSec * 1000);
 
                     if (++retries < 5) // this should be adjusted specific to the application scenario
                     {
@@ -118,7 +118,7 @@ namespace DeltaQueryApplication
                         "Processed change(s) successfully. Will check back in {0} sec.",
                         pullIntervalSec);
 
-                    Thread.Sleep(pullIntervalSec * 1000);
+                    await Task.Delay(pullIntervalSec * 1000);
                 }
             }
         }

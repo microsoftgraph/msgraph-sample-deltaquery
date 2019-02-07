@@ -22,6 +22,7 @@
 namespace DeltaQueryApplication
 {
     using System.Collections.Generic;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Defines methods to call the Delta Query service and process the results.
@@ -31,7 +32,7 @@ namespace DeltaQueryApplication
         /// <summary>
         /// Calls the Delta Query Graph service and processes the result.
         /// </summary>
-        void DeltaQuery(AppConfiguration appConfiguration);
+        Task DeltaQueryAsync(AppConfiguration appConfiguration);
 
         /// <summary>
         /// Processes the specified object represented by the change.

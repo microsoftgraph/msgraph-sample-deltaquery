@@ -22,6 +22,8 @@
 namespace DeltaQueryApplication
 {
     using System.Configuration;
+    using System.Threading.Tasks;
+    using System;
 
     /// <summary>
     /// Delta Query sample console application
@@ -35,7 +37,18 @@ namespace DeltaQueryApplication
         {
             AppConfiguration appConfiguration = AppConfiguration.GetConfiguration();
             IChangeManager changeManager = new ChangeManager();
-            changeManager.DeltaQuery(appConfiguration);
+
+            var task = Task.Run(() => changeManager.DeltaQueryAsync(appConfiguration));
+
+            try
+            {
+                task.Wait();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            changeManager.DeltaQueryAsync(appConfiguration);
         }
     }
 
