@@ -144,8 +144,6 @@ namespace DeltaQueryApplication
             bool isDeleted = change.ContainsKey("@removed");
             if (isDeleted)
             {
-                IDictionary idict = (IDictionary)change["@removed"];
-                bool isSoftDeleted = idict["reason"].Equals("changed");
                 _changeObjectHandler.Delete(change);
             }
             else if (_changeObjectHandler.Exists(change))

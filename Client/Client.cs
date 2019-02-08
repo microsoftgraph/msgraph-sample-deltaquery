@@ -174,10 +174,14 @@ namespace DeltaQueryClient
                         { "id", graphResult[i].Id }
                     };
 
-                    object removedReason;
-                    if (graphResult.AdditionalData.TryGetValue("@removed", out removedReason))
+                   
+                    if (graphResult[i].AdditionalData != null)
                     {
-                        resultObject.Add("@removed", removedReason);
+                        object removedReason;
+                        if (graphResult[i].AdditionalData.TryGetValue("@removed", out removedReason))
+                        {
+                            resultObject.Add("@removed", removedReason);
+                        }
                     }
                     //add to results
                     resultObjectList.Add(resultObject);
