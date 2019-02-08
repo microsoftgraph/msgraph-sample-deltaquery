@@ -14,6 +14,7 @@ namespace DeltaQueryClient
     {
         private PublicClientApplication _clientApplication;
         private string[] _scopes;
+        private string _accessToken = null;
 
         public MsalAuthenticationProvider(PublicClientApplication clientApplication, string[] scopes) {
             _clientApplication = clientApplication;
@@ -34,9 +35,17 @@ namespace DeltaQueryClient
         /// </summary>
         public async Task<string> GetTokenAsync()
         {
-            AuthenticationResult authResult = null;
-            authResult = await _clientApplication.AcquireTokenAsync(_scopes);
-            return authResult.AccessToken;
+            if (_accessToken == null)
+            {
+                AuthenticationResult authResult = null;
+                authResult = await _clientApplication.AcquireTokenAsync(_scopes);
+                _accessToken = authResult.AccessToken;
+                return _accessToken;
+            }
+            else
+            {
+                return _accessToken;
+            }
         }
 
     }
