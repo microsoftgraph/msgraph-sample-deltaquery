@@ -27,6 +27,7 @@ namespace DeltaQueryClient
     using System.Linq;
     using Microsoft.Graph;
     using System.Threading.Tasks;
+    using System.Collections;
 
     /// <summary>
     /// Sample implementation of obtaining changes from graph using Delta Query.
@@ -47,7 +48,7 @@ namespace DeltaQueryClient
         /// <param name="logger">Logger to be used for logging output/debug.</param>
         /// <param name="authToken"></param>
         public Client(
-            string [] scopes,
+            IEnumerable scopes,
             string appPrincipalId,
             ILogger logger)
         {
@@ -76,7 +77,7 @@ namespace DeltaQueryClient
         /// <summary>
         /// Gets or sets the scopes needed by the app.
         /// </summary>
-        private string [] scopes { get; set; }
+        private IEnumerable scopes { get; set; }
 
         /// <summary>
         /// Gets or sets the service principal ID for your application.
@@ -216,10 +217,10 @@ namespace DeltaQueryClient
         /// <summary>
         /// Returns a valid IAuthenticationProvider object to be used for creating a GraphClient
         /// </summary>
-        private IAuthenticationProvider GetAuthorizationProvider(String [] scopes, String authority)
+        private IAuthenticationProvider GetAuthorizationProvider(IEnumerable scopes, String authority)
         {
             PublicClientApplication clientApplication = new PublicClientApplication(this.appPrincipalId, authority);
-            return new MsalAuthenticationProvider(clientApplication, scopes); ;
+            return new MsalAuthenticationProvider(clientApplication, scopes.Cast<string>().ToArray()); ;
         }
 
         #endregion
