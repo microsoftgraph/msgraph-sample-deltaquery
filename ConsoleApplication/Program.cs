@@ -62,7 +62,7 @@ namespace DeltaQueryApplication
         {
             var appConfig = new AppConfiguration()
             {
-                AppPrincipalId = ConfigurationManager.AppSettings["AppPrincipalId"],
+                ClientId = ConfigurationManager.AppSettings["ClientId"],
                 PullIntervalSec = int.Parse(ConfigurationManager.AppSettings["PullIntervalSec"]),
                 Scopes = ConfigurationManager.AppSettings["Scopes"].Split(','),
                 AppVersion = ConfigurationManager.AppSettings["AppVersion"],
@@ -71,7 +71,7 @@ namespace DeltaQueryApplication
             return appConfig;
         }
         
-        public string AppPrincipalId { get; set; }
+        public string ClientId { get; set; }
         public string AppVersion { get; set; }
         public int PullIntervalSec { get; set; }
         public string [] Scopes { get; set; }

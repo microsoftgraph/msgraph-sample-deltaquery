@@ -34,7 +34,7 @@ Using MSAL
 
 1. In Solution Explorer, select and edit the **App.config** in the ConsoleApplication project.
 
-	a. For the `AppPrincipalId` key, replace `To be filled in` with the application ID of your registered Azure application.
+	a. For the `ClientId` key, replace `To be filled in` with the application ID of your registered Azure application.
 
 <a name="contributing"></a>
 ## Contributing ##

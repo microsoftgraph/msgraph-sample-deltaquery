@@ -43,20 +43,18 @@ namespace DeltaQueryClient
         /// Initializes a new instance of the <see cref="Client"/> class.
         /// </summary>
         /// <param name="scopes">Scopes needed by the app to run</param>
-        /// <param name="appPrincipalId">Service principal ID.</param>
-        /// <param name="appPrincipalPassword">Service principal password.</param>
+        /// <param name="clientId">Client ID(Application id) of the app.</param>
         /// <param name="logger">Logger to be used for logging output/debug.</param>
-        /// <param name="authToken"></param>
         public Client(
-            IEnumerable scopes,
-            string appPrincipalId,
+            IEnumerable<string> scopes,
+            string clientId,
             ILogger logger)
         {
             this.ReadConfiguration();
             this.scopes = scopes;
-            this.appPrincipalId = appPrincipalId;
+            this.clientId = clientId;
             this.logger = logger;
-            this.graphServiceClient = new GraphServiceClient(GetAuthorizationProvider(scopes, authority));
+            this.graphServiceClient = new GraphServiceClient(GetAuthorizationProvider());
         }
 
         /// <summary>
@@ -77,12 +75,12 @@ namespace DeltaQueryClient
         /// <summary>
         /// Gets or sets the scopes needed by the app.
         /// </summary>
-        private IEnumerable scopes { get; set; }
+        private IEnumerable<string> scopes { get; set; }
 
         /// <summary>
         /// Gets or sets the service principal ID for your application.
         /// </summary>
-        private string appPrincipalId { get; set; }
+        private string clientId { get; set; }
 
         /// <summary>
         /// Gets or sets the authority url for auth
@@ -101,7 +99,7 @@ namespace DeltaQueryClient
         /// Skip token returned by a previous call to the service or <see langref="null"/>.
         /// </param>
         /// <returns>Result from the Delta Query service.</returns>
-        public Task<DeltaQueryResult> DeltaQuery(string stateToken)
+        public Task<DeltaQueryResult> DeltaQueryAsync(string stateToken)
         {       
             return this.DeltaQueryAsync(
                 stateToken,
@@ -217,10 +215,10 @@ namespace DeltaQueryClient
         /// <summary>
         /// Returns a valid IAuthenticationProvider object to be used for creating a GraphClient
         /// </summary>
-        private IAuthenticationProvider GetAuthorizationProvider(IEnumerable scopes, String authority)
+        private IAuthenticationProvider GetAuthorizationProvider()
         {
-            PublicClientApplication clientApplication = new PublicClientApplication(this.appPrincipalId, authority);
-            return new MsalAuthenticationProvider(clientApplication, scopes.Cast<string>().ToArray()); ;
+            PublicClientApplication clientApplication = new PublicClientApplication(clientId, authority);
+            return new MsalAuthenticationProvider(clientApplication, scopes); ;
         }
 
         #endregion
