@@ -27,7 +27,6 @@ namespace DeltaQueryClient
     using System.Linq;
     using Microsoft.Graph;
     using System.Threading.Tasks;
-    using System.Collections;
 
     /// <summary>
     /// Sample implementation of obtaining changes from graph using Delta Query.
@@ -48,29 +47,15 @@ namespace DeltaQueryClient
         public Client(
             IEnumerable<string> scopes,
             string clientId,
+            string authority,
             ILogger logger)
         {
-            this.ReadConfiguration();
             this.scopes = scopes;
+            this.authority = authority;
             this.clientId = clientId;
             this.logger = logger;
             this.graphServiceClient = new GraphServiceClient(GetAuthorizationProvider());
         }
-
-        /// <summary>
-        /// Gets or sets the Graph service endpoint.
-        /// </summary>
-        protected string azureADServiceHost { get; set; }
-
-        /// <summary>
-        /// Gets or sets the Graph API version.
-        /// </summary>
-        protected string apiVersion { get; set; }
-
-        /// <summary>
-        /// Gets or sets the well known service principal ID for Windows Azure AD Access Control.
-        /// </summary>
-        private string protectedResourcePrincipalId { get; set; }
 
         /// <summary>
         /// Gets or sets the scopes needed by the app.
@@ -140,7 +125,17 @@ namespace DeltaQueryClient
                 switch (mse.ErrorCode)
                 {
                     case MsalServiceException.InvalidAuthority:
+                        // What happens:   When the library attempts to discover the authority and get the endpoints it
+                        // needs to acquire a token, it got an un-authorize HTTP code or an unexpected response
+                        // Remediation:
+                        // Check that the authority configured for the application, or passed on some overrides
+                        // of token acquisition tokens supporting authority override is correct
                     case "unauthorized_client":
+                        // For instance: AADSTS700016: Application with identifier '{clientId}' was not found in the directory '{domain}'.
+                        // This can happen if the application has not been installed by the administrator of the tenant or consented to by any user in the tenant. 
+                        // You may have sent your authentication request to the wrong tenant
+                        // Cause: The clientId in the app.config is wrong
+                        // Remediation: check the clientId and the app registration
                         logger.Log("The application is not configured correctly with Azure AD");
                         break;
                     case MsalServiceException.RequestTimeout:
@@ -241,17 +236,6 @@ namespace DeltaQueryClient
         }
 
         #region helpers   
-
-        /// <summary>
-        /// Reads the client configuration.
-        /// </summary>
-        private void ReadConfiguration()
-        {
-            this.azureADServiceHost = Configuration.GetElementValue("AzureADServiceHost");
-            this.apiVersion = Configuration.GetElementValue("ApiVersion");
-            this.protectedResourcePrincipalId = Configuration.GetElementValue("ProtectedResourcePrincipalId");
-            this.authority = Configuration.GetElementValue("Authority");
-        }
 
         /// <summary>
         /// Returns a valid IAuthenticationProvider object to be used for creating a GraphClient

@@ -35,7 +35,7 @@ namespace DeltaQueryApplication
         /// </summary>
         private static void Main()
         {
-            AppConfiguration appConfiguration = AppConfiguration.GetConfiguration();
+            AppConfiguration appConfiguration = AppConfiguration.ReadFromJsonFile("appsettings.json");
             IChangeManager changeManager = new ChangeManager();
 
             var task = Task.Run(() => changeManager.DeltaQueryAsync(appConfiguration));
@@ -50,30 +50,5 @@ namespace DeltaQueryApplication
             }
             changeManager.DeltaQueryAsync(appConfiguration);
         }
-    }
-
-
-    /// <summary>
-    /// Class to hold the app configurations read from the file
-    /// </summary>
-    public class AppConfiguration
-    {
-        public static AppConfiguration GetConfiguration()
-        {
-            var appConfig = new AppConfiguration()
-            {
-                ClientId = ConfigurationManager.AppSettings["ClientId"],
-                PullIntervalSec = int.Parse(ConfigurationManager.AppSettings["PullIntervalSec"]),
-                Scopes = ConfigurationManager.AppSettings["Scopes"].Split(','),
-                AppVersion = ConfigurationManager.AppSettings["AppVersion"],
-            };
-
-            return appConfig;
-        }
-        
-        public string ClientId { get; set; }
-        public string AppVersion { get; set; }
-        public int PullIntervalSec { get; set; }
-        public string [] Scopes { get; set; }
     }
 }

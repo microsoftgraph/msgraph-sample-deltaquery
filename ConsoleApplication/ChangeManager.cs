@@ -71,7 +71,7 @@ namespace DeltaQueryApplication
             string stateToken = _tokenManager.Read();
             int retries = 0;
 
-            Client client = new Client(appConfiguration.Scopes, appConfiguration.ClientId, Logger.DefaultLogger);
+            Client client = new Client(appConfiguration.Scopes, appConfiguration.ClientId, appConfiguration.Authority,Logger.DefaultLogger);
 
             while (true)
             {
