@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Identity.Client;
 using Microsoft.Graph;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DeltaQueryClient
 {
@@ -15,7 +16,6 @@ namespace DeltaQueryClient
     {
         private PublicClientApplication _clientApplication;
         private IEnumerable<string> _scopes;
-        private IAccount _account = null;
 
         public MsalAuthenticationProvider(PublicClientApplication clientApplication, IEnumerable<string> scopes) {
             _clientApplication = clientApplication;
@@ -37,25 +37,20 @@ namespace DeltaQueryClient
         public async Task<string> GetTokenAsync()
         {
             AuthenticationResult authResult = null;
-            if (_account != null)
+            var accounts = await _clientApplication.GetAccountsAsync();
+            IAccount account = accounts.FirstOrDefault(); // Supposing here there is only one user to the app
+
+            try
             {
-                try
-                {
-                    authResult = await _clientApplication.AcquireTokenSilentAsync(_scopes, _account);
-                }
-                catch (MsalUiRequiredException)
-                {
-                    authResult = await _clientApplication.AcquireTokenAsync(_scopes);
-                    _account = authResult.Account;
-                }
+                // Benefit from the token cache, and automatic token refresh
+                authResult = await _clientApplication.AcquireTokenSilentAsync(_scopes, account);
             }
-            else
+            catch (MsalUiRequiredException)
             {
                 authResult = await _clientApplication.AcquireTokenAsync(_scopes);
-                _account = authResult.Account;
             }
-
             return authResult.AccessToken;
+
         }
     }
 }

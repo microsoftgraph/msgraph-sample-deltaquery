@@ -90,7 +90,7 @@ namespace DeltaQueryClient
         /// <summary>
         /// GraphServiceClient client used for the inner working of the graph calls
         /// </summary>
-        private GraphServiceClient graphServiceClient { get; set; }
+        private GraphServiceClient graphServiceClient { get; }
 
         /// <summary>
         /// Calls the Delta Query service and returns the result.
@@ -128,75 +128,116 @@ namespace DeltaQueryClient
                    options.Add( new QueryOption("$select", parameter));
                 }
             }
-            
-            //run graph query
-            var graphResult = await graphServiceClient.Me.MailFolders.Delta().Request(options).GetAsync();
-            List<Dictionary<string, object>> resultObjectList = new List<Dictionary<string, object>>();
 
-            if (stateToken == null)
+            //run graph query
+            IMailFolderDeltaCollectionPage graphResult;
+            try
             {
-                //There is a no valid state token so this is a new request
-                for (int i = 0; i < graphResult.Count; i++)
+                graphResult = await graphServiceClient.Me.MailFolders.Delta().Request(options).GetAsync();
+            }
+            catch (MsalServiceException mse)
+            {
+                switch (mse.ErrorCode)
                 {
-                    Dictionary<string, object> resultObject = new Dictionary<string, object>()
+                    case MsalServiceException.InvalidAuthority:
+                    case "unauthorized_client":
+                        logger.Log("The application is not configured correctly with Azure AD");
+                        break;
+                    case MsalServiceException.RequestTimeout:
+                    case MsalServiceException.ServiceNotAvailable:
+                        logger.Log("Acquiring a security token to call Graph failed. Please try later");
+                        break;
+                }
+                graphResult = null;
+            }
+            catch (MsalException)
+            {
+                // For memory, we need to revisit this
+                // There will be an Http timeout exception in MSAL 3.0
+                graphResult = null;
+            }
+            var result = await ProcessGraphResultAsync(stateToken, graphResult);
+            return new DeltaQueryResult(result);
+        }
+
+        /// <summary>
+        ///Private function to help with processing of the results of the Graph query
+        /// </summary>
+        /// <param name="graphResult">The result of the Graph call task</param>
+        /// <param name="stateToken">
+        /// Skip token returned by a previous call to the service or <see langref="null"/>.
+        /// </param>
+        /// <returns>Dictionary of the processed results</returns>
+        private async Task<Dictionary<string, object>> ProcessGraphResultAsync(string stateToken, IMailFolderDeltaCollectionPage graphResult)
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            if (graphResult != null)
+            {
+                List<Dictionary<string, object>> resultObjectList = new List<Dictionary<string, object>>();
+
+                if (stateToken == null)
+                {
+                    //There is a no valid state token so this is a new request
+                    for (int i = 0; i < graphResult.Count; i++)
+                    {
+                        Dictionary<string, object> resultObject = new Dictionary<string, object>()
                     {
                         { "id", graphResult[i].Id }
                     };
-                    //add to results
-                    resultObjectList.Add(resultObject);
-                }
+                        //add to results
+                        resultObjectList.Add(resultObject);
+                    }
 
-                //check if there are more pages of data
-                while (graphResult.NextPageRequest != null)
+                    //check if there are more pages of data
+                    while (graphResult.NextPageRequest != null)
+                    {
+                        graphResult = await graphResult.NextPageRequest.GetAsync();
+                        for (int i = 0; i < graphResult.Count; i++)
+                        {
+                            Dictionary<string, object> resultObject = new Dictionary<string, object>()
+                        {
+                            { "id", graphResult[i].Id }
+                        };
+                            //add to results
+                            resultObjectList.Add(resultObject);
+                        }
+                    }
+                }
+                else
                 {
+                    //There is a valid state token to check for query changes
+                    graphResult.InitializeNextPageRequest(graphServiceClient, stateToken);
                     graphResult = await graphResult.NextPageRequest.GetAsync();
                     for (int i = 0; i < graphResult.Count; i++)
                     {
                         Dictionary<string, object> resultObject = new Dictionary<string, object>()
-                        {
-                            { "id", graphResult[i].Id }
-                        };
-                        //add to results
-                        resultObjectList.Add(resultObject);
-                    }
-                }
-            }
-            else
-            {
-                //There is a valid state token to check for query changes
-                graphResult.InitializeNextPageRequest(graphServiceClient,stateToken);
-                graphResult = await graphResult.NextPageRequest.GetAsync();
-                for (int i = 0; i < graphResult.Count; i++)
-                {
-                    Dictionary<string, object> resultObject = new Dictionary<string, object>()
                     {
                         { "id", graphResult[i].Id }
                     };
 
-                   
-                    if (graphResult[i].AdditionalData != null)
-                    {
-                        object removedReason;
-                        if (graphResult[i].AdditionalData.TryGetValue("@removed", out removedReason))
+
+                        if (graphResult[i].AdditionalData != null)
                         {
-                            resultObject.Add("@removed", removedReason);
+                            object removedReason;
+                            if (graphResult[i].AdditionalData.TryGetValue("@removed", out removedReason))
+                            {
+                                resultObject.Add("@removed", removedReason);
+                            }
                         }
+                        //add to results
+                        resultObjectList.Add(resultObject);
                     }
-                    //add to results
-                    resultObjectList.Add(resultObject);
                 }
-            }
 
-            object deltaLink;
-            Dictionary<string, object> result = new Dictionary<string, object>();
-            if (graphResult.AdditionalData.TryGetValue(Constants.DeltaLinkFeedAnnotation, out deltaLink))
-            {
-                result.Add(Constants.DeltaLinkFeedAnnotation,deltaLink);
-            }
-            
-            result.Add("value", resultObjectList.ToArray<Dictionary<string, object>>());
+                object deltaLink;
+                if (graphResult.AdditionalData.TryGetValue(Constants.DeltaLinkFeedAnnotation, out deltaLink))
+                {
+                    result.Add(Constants.DeltaLinkFeedAnnotation, deltaLink);
+                }
 
-            return new DeltaQueryResult(result);
+                result.Add("value", resultObjectList.ToArray<Dictionary<string, object>>());
+            }
+            return result;
         }
 
         #region helpers   
