@@ -104,11 +104,11 @@ namespace DeltaQueryApplication
                 switch (mse.ErrorCode)
                 {
                     case MsalServiceException.InvalidAuthority:
-                    // What happens:   When the library attempts to discover the authority and get the endpoints it
-                    // needs to acquire a token, it got an un-authorize HTTP code or an unexpected response
-                    // Remediation:
-                    // Check that the authority configured for the application, or passed on some overrides
-                    // of token acquisition tokens supporting authority override is correct
+                        // What happens:   When the library attempts to discover the authority and get the endpoints it
+                        // needs to acquire a token, it got an un-authorize HTTP code or an unexpected response
+                        // Remediation:
+                        // Check that the authority configured for the application, or passed on some overrides
+                        // of token acquisition tokens supporting authority override is correct
                     case "unauthorized_client":
                         // For instance: AADSTS700016: Application with identifier '{clientId}' was not found in the directory '{domain}'.
                         // This can happen if the application has not been installed by the administrator of the tenant or consented to by any user in the tenant. 
@@ -198,11 +198,11 @@ namespace DeltaQueryApplication
                     for (int i = 0; i < graphResult.Count; i++)
                     {
                         Dictionary<string, object> resultObject = new Dictionary<string, object>()
-                    {
-                        { "id", graphResult[i].Id }
-                    };
+                        {
+                            { "id", graphResult[i].Id }
+                        };
 
-
+                        //check if the change was due to a removal
                         if (graphResult[i].AdditionalData != null)
                         {
                             object removedReason;
