@@ -23,7 +23,6 @@ namespace DeltaQueryApplication
 {
     using System;
     using System.IO;
-    using DeltaQueryClient;
 
     /// <summary>
     /// Defines methods to provide logging for the sample application.

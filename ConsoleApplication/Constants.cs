@@ -19,7 +19,7 @@
 // </disclaimer>
 //-------------------------------------------------------------------------------------------------
 
-namespace DeltaQueryClient
+namespace DeltaQueryApplication
 {
     /// <summary>
     /// This class contains the constant fields used in this sample.

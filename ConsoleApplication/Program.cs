@@ -38,7 +38,7 @@ namespace DeltaQueryApplication
             AppConfiguration appConfiguration = AppConfiguration.ReadFromJsonFile("appsettings.json");
             IChangeManager changeManager = new ChangeManager();
 
-            var task = Task.Run(() => changeManager.DeltaQueryAsync(appConfiguration));
+            var task = Task.Run(() => changeManager.DeltaQueryStartAsync(appConfiguration));
 
             try
             {
@@ -48,7 +48,7 @@ namespace DeltaQueryApplication
             {
                 Console.WriteLine(ex.Message);
             }
-            changeManager.DeltaQueryAsync(appConfiguration);
+            
         }
     }
 }

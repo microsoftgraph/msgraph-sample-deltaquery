@@ -6,7 +6,7 @@ using Microsoft.Graph;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DeltaQueryClient
+namespace DeltaQueryApplication
 {
     // This class encapsulates the details of getting a token from MSAL and exposes it via the 
     // IAuthenticationProvider interface so that GraphServiceClient or AuthHandler can use it.

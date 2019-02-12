@@ -24,8 +24,6 @@ namespace DeltaQueryApplication
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using DeltaQueryClient;
-    using System.Collections;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -51,7 +49,7 @@ namespace DeltaQueryApplication
         /// <summary>
         /// Calls the Delta Query service and processes the result.
         /// </summary>
-        public async Task DeltaQueryAsync(AppConfiguration appConfiguration)
+        public async Task DeltaQueryStartAsync(AppConfiguration appConfiguration)
         {
             Logger.DefaultLogger.LogDebug(
                 "Delta Query initialized with ClientId {0}.",
@@ -71,7 +69,7 @@ namespace DeltaQueryApplication
             string stateToken = _tokenManager.Read();
             int retries = 0;
 
-            Client client = new Client(appConfiguration.Scopes, appConfiguration.ClientId, appConfiguration.Authority,Logger.DefaultLogger);
+            DeltaQuery deltaQuery = new DeltaQuery(appConfiguration,Logger.DefaultLogger);
 
             while (true)
             {
@@ -79,7 +77,7 @@ namespace DeltaQueryApplication
 
                 try
                 {
-                    result = await client.DeltaQueryAsync(stateToken);
+                    result = await deltaQuery.DeltaQueryRunAsync(stateToken);
                 }
                 catch (Exception e)
                 {

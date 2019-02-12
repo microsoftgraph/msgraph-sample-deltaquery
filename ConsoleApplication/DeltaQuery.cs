@@ -1,5 +1,4 @@
-﻿//-------------------------------------------------------------------------------------------------
-// <copyright file="Client.cs" company="Microsoft">
+﻿// <copyright file="DeltaQuery.cs" company="Microsoft">
 //     Copyright (c) Microsoft Corporation.  All rights reserved.
 // </copyright>
 //
@@ -19,19 +18,15 @@
 // </disclaimer>
 //-------------------------------------------------------------------------------------------------
 
-namespace DeltaQueryClient
-{
-    using Microsoft.Identity.Client;
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using Microsoft.Graph;
-    using System.Threading.Tasks;
+using Microsoft.Graph;
+using Microsoft.Identity.Client;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
-    /// <summary>
-    /// Sample implementation of obtaining changes from graph using Delta Query.
-    /// </summary>
-    public class Client
+namespace DeltaQueryApplication
+{
+    public class DeltaQuery
     {
         /// <summary>
         /// Logger to be used for logging output/debug.
@@ -39,43 +34,27 @@ namespace DeltaQueryClient
         private ILogger logger;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Client"/> class.
+        /// GraphServiceClient client used for the inner working of the graph calls
+        /// </summary>
+        private GraphServiceClient graphServiceClient { get; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DeltaQuery"/> class.
         /// </summary>
         /// <param name="scopes">Scopes needed by the app to run</param>
         /// <param name="clientId">Client ID(Application id) of the app.</param>
         /// <param name="logger">Logger to be used for logging output/debug.</param>
-        public Client(
-            IEnumerable<string> scopes,
-            string clientId,
-            string authority,
+        public DeltaQuery(
+            AppConfiguration appConfiguration,
             ILogger logger)
         {
-            this.scopes = scopes;
-            this.authority = authority;
-            this.clientId = clientId;
             this.logger = logger;
-            this.graphServiceClient = new GraphServiceClient(GetAuthorizationProvider());
+            this.graphServiceClient = 
+               GraphClientFactory.GetGraphServiceClient(
+                    appConfiguration.ClientId,
+                    appConfiguration.Authority,
+                    appConfiguration.Scopes);
         }
-
-        /// <summary>
-        /// Gets or sets the scopes needed by the app.
-        /// </summary>
-        private IEnumerable<string> scopes { get; set; }
-
-        /// <summary>
-        /// Gets or sets the service principal ID for your application.
-        /// </summary>
-        private string clientId { get; set; }
-
-        /// <summary>
-        /// Gets or sets the authority url for auth
-        /// </summary>
-        private string authority { get; set; }
-
-        /// <summary>
-        /// GraphServiceClient client used for the inner working of the graph calls
-        /// </summary>
-        private GraphServiceClient graphServiceClient { get; }
 
         /// <summary>
         /// Calls the Delta Query service and returns the result.
@@ -84,9 +63,9 @@ namespace DeltaQueryClient
         /// Skip token returned by a previous call to the service or <see langref="null"/>.
         /// </param>
         /// <returns>Result from the Delta Query service.</returns>
-        public Task<DeltaQueryResult> DeltaQueryAsync(string stateToken)
-        {       
-            return this.DeltaQueryAsync(
+        public Task<DeltaQueryResult> DeltaQueryRunAsync(string stateToken)
+        {
+            return this.DeltaQueryRunAsync(
                 stateToken,
                 new string[0]);
         }
@@ -100,7 +79,7 @@ namespace DeltaQueryClient
         /// </param>
         /// <param name="propertyList">List of properties to retrieve.</param>
         /// <returns>Result from the Delta Query service.</returns>
-        public async Task<DeltaQueryResult> DeltaQueryAsync(
+        public async Task<DeltaQueryResult> DeltaQueryRunAsync(
             string stateToken,
             ICollection<string> propertyList)
         {
@@ -110,7 +89,7 @@ namespace DeltaQueryClient
             {
                 foreach (string parameter in propertyList)
                 {
-                   options.Add( new QueryOption("$select", parameter));
+                    options.Add(new QueryOption("$select", parameter));
                 }
             }
 
@@ -125,11 +104,11 @@ namespace DeltaQueryClient
                 switch (mse.ErrorCode)
                 {
                     case MsalServiceException.InvalidAuthority:
-                        // What happens:   When the library attempts to discover the authority and get the endpoints it
-                        // needs to acquire a token, it got an un-authorize HTTP code or an unexpected response
-                        // Remediation:
-                        // Check that the authority configured for the application, or passed on some overrides
-                        // of token acquisition tokens supporting authority override is correct
+                    // What happens:   When the library attempts to discover the authority and get the endpoints it
+                    // needs to acquire a token, it got an un-authorize HTTP code or an unexpected response
+                    // Remediation:
+                    // Check that the authority configured for the application, or passed on some overrides
+                    // of token acquisition tokens supporting authority override is correct
                     case "unauthorized_client":
                         // For instance: AADSTS700016: Application with identifier '{clientId}' was not found in the directory '{domain}'.
                         // This can happen if the application has not been installed by the administrator of the tenant or consented to by any user in the tenant. 
@@ -142,15 +121,28 @@ namespace DeltaQueryClient
                     case MsalServiceException.ServiceNotAvailable:
                         logger.Log("Acquiring a security token to call Graph failed. Please try later");
                         break;
+                    default:
+                        logger.Log(mse.Message);
+                        logger.Log("Error occured with Graph call");
+                        break;
                 }
                 graphResult = null;
             }
-            catch (MsalException)
+            catch (MsalException me)
             {
                 // For memory, we need to revisit this
                 // There will be an Http timeout exception in MSAL 3.0
                 graphResult = null;
+                logger.Log(me.Message);
+                logger.Log("Error occured (MsalException) with Graph call");
             }
+            catch (ServiceException se)
+            {
+                graphResult = null;
+                logger.Log(se.Message);
+                logger.Log("Error occured (ServiceException) with Graph call");
+            }
+
             var result = await ProcessGraphResultAsync(stateToken, graphResult);
             return new DeltaQueryResult(result);
         }
@@ -234,18 +226,5 @@ namespace DeltaQueryClient
             }
             return result;
         }
-
-        #region helpers   
-
-        /// <summary>
-        /// Returns a valid IAuthenticationProvider object to be used for creating a GraphClient
-        /// </summary>
-        private IAuthenticationProvider GetAuthorizationProvider()
-        {
-            PublicClientApplication clientApplication = new PublicClientApplication(clientId, authority);
-            return new MsalAuthenticationProvider(clientApplication, scopes); ;
-        }
-
-        #endregion
     }
 }
