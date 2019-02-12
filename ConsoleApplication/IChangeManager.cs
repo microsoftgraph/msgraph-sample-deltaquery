@@ -32,7 +32,7 @@ namespace DeltaQueryApplication
         /// <summary>
         /// Calls the Delta Query Graph service and processes the result.
         /// </summary>
-        Task DeltaQueryAsync(AppConfiguration appConfiguration);
+        Task DeltaQueryStartAsync(AppConfiguration appConfiguration);
 
         /// <summary>
         /// Processes the specified object represented by the change.

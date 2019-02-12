@@ -5,8 +5,6 @@ VisualStudioVersion = 15.0.28010.2003
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeltaQueryConsoleApplication", "ConsoleApplication\DeltaQueryConsoleApplication.csproj", "{FE14AE0B-4328-4633-ABFA-C87000175BD2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeltaQueryClient", "Client\DeltaQueryClient.csproj", "{9A0A15A3-AE15-4640-8857-79EEB90067E0}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,14 +21,6 @@ Global
 		{FE14AE0B-4328-4633-ABFA-C87000175BD2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FE14AE0B-4328-4633-ABFA-C87000175BD2}.Release|x64.ActiveCfg = Release|x64
 		{FE14AE0B-4328-4633-ABFA-C87000175BD2}.Release|x64.Build.0 = Release|x64
-		{9A0A15A3-AE15-4640-8857-79EEB90067E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9A0A15A3-AE15-4640-8857-79EEB90067E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9A0A15A3-AE15-4640-8857-79EEB90067E0}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{9A0A15A3-AE15-4640-8857-79EEB90067E0}.Debug|x64.Build.0 = Debug|Any CPU
-		{9A0A15A3-AE15-4640-8857-79EEB90067E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9A0A15A3-AE15-4640-8857-79EEB90067E0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9A0A15A3-AE15-4640-8857-79EEB90067E0}.Release|x64.ActiveCfg = Release|Any CPU
-		{9A0A15A3-AE15-4640-8857-79EEB90067E0}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -19,7 +19,7 @@
 // </disclaimer>
 //-------------------------------------------------------------------------------------------------
 
-namespace DeltaQueryClient
+namespace DeltaQueryApplication
 {
     using System;
     using System.Collections.Generic;
@@ -30,7 +30,7 @@ namespace DeltaQueryClient
     public class DeltaQueryResult
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="DeltaQueryClient.DeltaQueryResult"/> class.
+        /// Initializes a new instance of the <see cref="DeltaQueryResult"/> class.
         /// </summary>
         /// <param name="response">Response from Delta Query service.</param>
         /// <exception cref="ArgumentNullException"><paramref name="response"/> is <see langref="null"/>.</exception>

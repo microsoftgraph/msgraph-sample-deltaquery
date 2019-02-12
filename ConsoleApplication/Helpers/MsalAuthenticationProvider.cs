@@ -3,8 +3,10 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Microsoft.Identity.Client;
 using Microsoft.Graph;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace DeltaQueryClient
+namespace DeltaQueryApplication
 {
     // This class encapsulates the details of getting a token from MSAL and exposes it via the 
     // IAuthenticationProvider interface so that GraphServiceClient or AuthHandler can use it.
@@ -13,10 +15,9 @@ namespace DeltaQueryClient
     public class MsalAuthenticationProvider : IAuthenticationProvider
     {
         private PublicClientApplication _clientApplication;
-        private string[] _scopes;
-        private string _accessToken = null;
+        private IEnumerable<string> _scopes;
 
-        public MsalAuthenticationProvider(PublicClientApplication clientApplication, string[] scopes) {
+        public MsalAuthenticationProvider(PublicClientApplication clientApplication, IEnumerable<string> scopes) {
             _clientApplication = clientApplication;
             _scopes = scopes;
         }
@@ -35,18 +36,21 @@ namespace DeltaQueryClient
         /// </summary>
         public async Task<string> GetTokenAsync()
         {
-            if (_accessToken == null)
-            {
-                AuthenticationResult authResult = null;
-                authResult = await _clientApplication.AcquireTokenAsync(_scopes);
-                _accessToken = authResult.AccessToken;
-                return _accessToken;
-            }
-            else
-            {
-                return _accessToken;
-            }
-        }
+            AuthenticationResult authResult = null;
+            var accounts = await _clientApplication.GetAccountsAsync();
+            IAccount account = accounts.FirstOrDefault(); // Supposing here there is only one user to the app
 
+            try
+            {
+                // Benefit from the token cache, and automatic token refresh
+                authResult = await _clientApplication.AcquireTokenSilentAsync(_scopes, account);
+            }
+            catch (MsalUiRequiredException)
+            {
+                authResult = await _clientApplication.AcquireTokenAsync(_scopes);
+            }
+            return authResult.AccessToken;
+
+        }
     }
 }
