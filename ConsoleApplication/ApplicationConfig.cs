@@ -54,11 +54,6 @@ namespace DeltaQueryApplication
         public string ClientId { get; set; }
 
         /// <summary>
-        /// Scopes needed by the application to work
-        /// </summary>
-        public string [] Scopes { get; set; }
-
-        /// <summary>
         /// URL of the authority
         /// </summary>
         public string Authority

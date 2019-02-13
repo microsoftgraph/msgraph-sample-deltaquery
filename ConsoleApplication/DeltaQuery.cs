@@ -57,7 +57,7 @@ namespace DeltaQueryApplication
                GraphClientFactory.GetGraphServiceClient(
                     appConfiguration.ClientId,
                     appConfiguration.Authority,
-                    appConfiguration.Scopes);
+                    new string [] { Constants.DefaultScope });
         }
 
         /// <summary>

@@ -29,20 +29,6 @@ namespace DeltaQueryApplication
     /// </summary>
     internal static class Constants
     {
-        /// <summary>
-        /// Authorization header.
-        /// </summary>
-        public const string HeaderNameAuthorization = "Authorization";
-
-        /// <summary>
-        /// deltaLink query parameter.
-        /// </summary>
-        public const string DeltaLinkQueryParameter = "deltatoken";
-        
-        /// <summary>
-        /// nextLink query parameter.
-        /// </summary>
-        public const string NextLinkQueryParameter = "skiptoken";
         
         /// <summary>
         /// Feed annotation that represents a URI to be called immediately for more changes.
@@ -55,8 +41,8 @@ namespace DeltaQueryApplication
         public const string NextLinkFeedAnnotation = "@odata.nextLink";
 
         /// <summary>
-        /// Format for getting STS endpoint.
+        /// String url for the default scope in MS Graph
         /// </summary>
-        public const string AuthEndpoint = "https://login.windows.net/{0}";
+        public const string DefaultScope = "https://graph.microsoft.com/.default";
     }
 }
