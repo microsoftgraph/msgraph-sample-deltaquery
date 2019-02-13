@@ -1,7 +1,7 @@
 ﻿/*
  The MIT License (MIT)
 
-Copyright (c) 2015 Microsoft Corporation
+Copyright (c) 2019 Microsoft Corporation
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -52,11 +52,6 @@ namespace DeltaQueryApplication
         /// Guid used by the application to uniquely identify itself to Azure AD
         /// </summary>
         public string ClientId { get; set; }
-
-        /// <summary>
-        /// Scopes needed by the application to work
-        /// </summary>
-        public string [] Scopes { get; set; }
 
         /// <summary>
         /// URL of the authority

@@ -1,4 +1,4 @@
-﻿{
+{
   // Azure Cloud instance among:
   // - https://login.microsoftonline.com/{0} for the AzurePublic
   //   (see https://aka.ms/aaddevv2). This is the default value
@@ -22,7 +22,7 @@
 
   // ClientId (ApplicationId) as copied from the application registration (which depends on the cloud instance)
   // See docs referenced in the AzureCloudInstance section above
-  "ClientId": "To be filled in",
+  "ClientId": "YOUR_CLIENT_ID_HERE",
 
   // Web API. Here Microsoft Graph. The endpoint is different depending on the cloud instance
   // (See docs referenced in the "Instance" section above.
@@ -31,6 +31,4 @@
   //Period to refresh the delta query to check for changes/updates in seconds
   "PullIntervalSec" : 60,
 
-  //Scopes needed by the application to make the appropiate delta query
-  "Scopes" : [ "Mail.Read" ]
 }

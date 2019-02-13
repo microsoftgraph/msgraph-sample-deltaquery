@@ -36,11 +36,8 @@ As a first step you'll need to:
    - In the **Supported account types** section, select **Accounts in any organizational directory and personal Microsoft accounts (e.g. Skype, Xbox, Outlook.com)**.
    - Select **Register** to create the application.
 1. On the app **Overview** page, find the **Application (client) ID** value and record it for later. You'll need it to configure the Visual Studio configuration file for this project.
-1. In the list of pages for the app, select **Manifest**, and:
-   - In the manifest editor, set the ``allowPublicClient`` property to **true**
-   - Select **Save** in the bar above the manifest editor.
 1. In the list of pages for the app, select **Authentication**
-   - In the *Suggested Redirect URIs for public clients(mobile,desktop)*, check all the boxes so that the app can work with the MSAL libs used in the application.
+   - In the *Suggested Redirect URIs for public clients(mobile,desktop)*, check the second box so that the app can work with the MSAL libs used in the application. (The box should contain the option *urn:ietf:wg:oauth:2.0:oob*). 
 1. In the list of pages for the app, select **API permissions**
    - Click the **Add a permission** button and then,
    - Ensure that the **Microsoft APIs** tab is selected
@@ -56,9 +53,9 @@ Open the solution in Visual Studio to configure the projects
 
 #### Configure the client project
 
-1. Open the `ConsoleApplication\appsettings.json` file
-1. Find the line where `ClientId` is set and replace the existing value with the application ID (clientId) of the `ConsoleApp-DeltaQuery-DotNet` application copied from the Azure portal.
-1. [optionally] Find the line where `TenantId` is set and replace the existing value with your tenant ID.
+1. In the *ConsoleApplication* folder, rename the `appsettings.json.example` file to `appsettings.json`
+1. Open and edit the `appsettings.json` file to make the following change
+    1. Find the line where `ClientId` is set as `YOUR_CLIENT_ID_HERE` and replace the existing value with the application ID (clientId) of the `ConsoleApp-DeltaQuery-DotNet` application copied from the Azure portal.
 
 Clean the solution, rebuild the solution, and start it in the debugger.
 
@@ -82,6 +79,6 @@ If you have a feature suggestion, please post your idea on our [User Voice](http
 - [Working with Delta Query in Microsoft Graph](https://developer.microsoft.com/en-us/graph/docs/concepts/delta_query_overview)
 - [Microsoft Graph developer site](https://developer.microsoft.com/en-us/graph/)
 - [Call Microsoft Graph in an ASP.NET MVC app](https://developer.microsoft.com/en-us/graph/docs/platform/aspnetmvc)
-- [MSAL Sample](https://github.com/AzureAD/microsoft-authentication-library-for-dotnet)
+- [MSAL.NET](https://aka.ms/msal-net)
 
 Copyright (c) 2019 Microsoft Corporation. All rights reserved.
