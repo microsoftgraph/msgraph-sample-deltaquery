@@ -37,7 +37,7 @@ As a first step you'll need to:
    - Select **Register** to create the application.
 1. On the app **Overview** page, find the **Application (client) ID** value and record it for later. You'll need it to configure the Visual Studio configuration file for this project.
 1. In the list of pages for the app, select **Authentication**
-   - In the *Suggested Redirect URIs for public clients(mobile,desktop)*, check all the boxes so that the app can work with the MSAL libs used in the application.
+   - In the *Suggested Redirect URIs for public clients(mobile,desktop)*, check the second box so that the app can work with the MSAL libs used in the application. (The box should contain the option *urn:ietf:wg:oauth:2.0:oob*). 
 1. In the list of pages for the app, select **API permissions**
    - Click the **Add a permission** button and then,
    - Ensure that the **Microsoft APIs** tab is selected
@@ -53,8 +53,9 @@ Open the solution in Visual Studio to configure the projects
 
 #### Configure the client project
 
-1. Open the `ConsoleApplication\appsettings.json` file
-1. Find the line where `ClientId` is set and replace the existing value with the application ID (clientId) of the `ConsoleApp-DeltaQuery-DotNet` application copied from the Azure portal.
+1. In the *ConsoleApplication* folder, rename the `appsettings.json.example` file to `appsettings.json`
+1. Open and edit the `appsettings.json` file to make the following change
+    1. Find the line where `ClientId` is set as `YOUR_CLIENT_ID_HERE` and replace the existing value with the application ID (clientId) of the `ConsoleApp-DeltaQuery-DotNet` application copied from the Azure portal.
 
 Clean the solution, rebuild the solution, and start it in the debugger.
 
