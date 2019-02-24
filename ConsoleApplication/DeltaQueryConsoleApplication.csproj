@@ -62,6 +62,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ApplicationConfig.cs" />
+    <Compile Include="Helpers\Constants.cs" />
     <Compile Include="Helpers\GraphClientFactory.cs" />
     <Compile Include="Helpers\MsalAuthenticationProvider.cs" />
     <Compile Include="Helpers\PageIterator.cs" />
