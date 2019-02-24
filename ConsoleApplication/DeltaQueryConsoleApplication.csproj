@@ -62,19 +62,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ApplicationConfig.cs" />
-    <Compile Include="DeltaQuery.cs" />
-    <Compile Include="Constants.cs" />
-    <Compile Include="DeltaQueryResult.cs" />
     <Compile Include="Helpers\GraphClientFactory.cs" />
     <Compile Include="Helpers\MsalAuthenticationProvider.cs" />
-    <Compile Include="ILogger.cs" />
-    <Compile Include="TokenManager.cs" />
-    <Compile Include="ChangeManager.cs" />
-    <Compile Include="ChangeObjectHandler.cs" />
-    <Compile Include="ITokenManager.cs" />
-    <Compile Include="IChangeManager.cs" />
-    <Compile Include="IChangeObjectHandler.cs" />
-    <Compile Include="Logger.cs" />
+    <Compile Include="Helpers\PageIterator.cs" />
     <Compile Include="Program.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -25,27 +25,19 @@ SOFTWARE.
 namespace DeltaQueryApplication
 {
     /// <summary>
-    /// Defines methods to manage the sync token obtained from Delta Query.
+    /// This class contains the constant fields used in this sample.
     /// </summary>
-    public class TokenManager : ITokenManager
+    internal static class Constants
     {
-        /// <summary>
-        /// Saves the token into a persistent store.
-        /// </summary>
-        /// <param name="token">Token to save.</param>
-        public void Save(string token)
-        {
-            // Implement a way to store the token in a file or any other persistent store.
-        }
 
         /// <summary>
-        /// Reads the token from the persistent store.
+        /// Feed annotation that represents a URI to be called immediately for more changes.
+        /// </summary>        
+        public const string DeltaLinkFeedAnnotation = "@odata.deltaLink";
+
+        /// <summary>
+        /// String url for the default scope in MS Graph
         /// </summary>
-        /// <returns>Token read from the persistent store or <see langword="null"/> if none exists.</returns>
-        public string Read()
-        {
-            // Implement a way to retrieve the token from a file or any other persistent store.
-            return null;
-        }
+        public const string DefaultScope = "https://graph.microsoft.com/.default";
     }
 }
