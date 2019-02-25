@@ -19,7 +19,37 @@ From your shell or command line:
 
 `git clone https://github.com/microsoftgraph/ConsoleApp-DeltaQuery-DotNet`
 
-### Step 2:  Configuring your Azure AD tenant
+### Step 2:  Register the sample application with your Azure Active Directory tenant
+
+There is one project in this sample. To register it, you can:
+
+- either follow the steps [Step 2: Register the sample with your Azure Active Directory tenant](#step-2-register-the-sample-with-your-azure-active-directory-tenant) and [Step 3:  Configure the sample to use your Azure AD tenant](#choose-the-azure-ad-tenant-where-you-want-to-create-your-applications)
+- or use PowerShell scripts that:
+  - **automatically** creates the Azure AD applications and related objects (passwords, permissions, dependencies) for you
+  - modify the Visual Studio projects' configuration files.
+
+If you want to use this automation:
+
+1. On Windows run PowerShell and navigate to the root of the cloned directory
+1. In PowerShell run:
+
+   ```PowerShell
+   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process -Force
+   ```
+
+1. Run the script to create your Azure AD application and configure the code of the sample application accordinly.
+
+   ```PowerShell
+   .\AppCreationScripts\Configure.ps1
+   ```
+
+   > Other ways of running the scripts are described in [App Creation Scripts](./AppCreationScripts/AppCreationScripts.md)
+
+1. Open the Visual Studio solution and click start
+
+If you don't want to use this automation, follow the steps below
+
+#### Choose the Azure AD tenant where you want to create your applications
 
 As a first step you'll need to:
 
