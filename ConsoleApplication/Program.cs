@@ -55,7 +55,8 @@ namespace DeltaQueryApplication
                     new string[] { Constants.DefaultScope });
 
             // Start watching mail folders
-            try {
+            try
+            {
                 Task.Run(() => WatchMailFolders(appConfiguration.PullIntervalSec)).Wait();
             }
             catch (MsalServiceException mse)
@@ -130,16 +131,21 @@ namespace DeltaQueryApplication
             }
         }
 
+        /// <summary>
+        /// Method for handling exceptions thrown by the MSAL library.
+        /// </summary>
+        /// <param name="mse">Intance of an excpetion of the type <see cref="MsalServiceException"/>> </param>
+        /// <returns></returns>
         private static void ProcessMsalException(MsalServiceException mse)
         {
             switch (mse.ErrorCode)
             {
                 case MsalServiceException.InvalidAuthority:
-                // What happens:   When the library attempts to discover the authority and get the endpoints it
-                // needs to acquire a token, it got an un-authorize HTTP code or an unexpected response
-                // Remediation:
-                // Check that the authority configured for the application, or passed on some overrides
-                // of token acquisition tokens supporting authority override is correct
+                    // What happens:   When the library attempts to discover the authority and get the endpoints it
+                    // needs to acquire a token, it got an un-authorize HTTP code or an unexpected response
+                    // Remediation:
+                    // Check that the authority configured for the application, or passed on some overrides
+                    // of token acquisition tokens supporting authority override is correct
                 case "unauthorized_client":
                     // For instance: AADSTS700016: Application with identifier '{clientId}' was not found in the directory '{domain}'.
                     // This can happen if the application has not been installed by the administrator of the tenant or consented to by any user in the tenant. 

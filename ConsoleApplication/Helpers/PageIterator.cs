@@ -39,13 +39,28 @@ namespace DeltaQueryApplication
     {
         private IMailFolderDeltaCollectionPage mailfolders;
         private readonly Action<MailFolder> callback;
+
+        /// <summary>
+        /// String token used for making request to Graph API to check 
+        /// for changes in the collection
+        /// </summary>
         public string DeltaLink { get; private set; }
 
+        /// <summary>
+        /// Constructor for the PageIterator
+        /// <param name="mailFolders">Instance of <see cref="IMailFolderDeltaCollectionPage"/> that holds
+        /// the collection mail folders to be processed.</param>
+        /// <param name="callback">Call back to process each item in collection.</param>
+        /// </summary>
         public PageIterator(IMailFolderDeltaCollectionPage mailFolders, Action<MailFolder> callback)
         {
             this.mailfolders = mailFolders;
             this.callback = callback;
         }
+
+        /// <summary>
+        /// Iterate through the mailfolders collection and process each item with the provided callback.
+        /// </summary>
         public async Task Iterate()
         {
             var more = true;
@@ -55,13 +70,16 @@ namespace DeltaQueryApplication
                 {
                     callback(item);
                 }
+
                 if (mailfolders.NextPageRequest != null)
                 {
                     this.mailfolders = await mailfolders.NextPageRequest.GetAsync();
-                } else
+                }
+                else
                 {
                     more = false;
                 }
+
                 if (this.mailfolders.AdditionalData.ContainsKey(Constants.DeltaLinkFeedAnnotation))
                 {
                     DeltaLink = this.mailfolders.AdditionalData[Constants.DeltaLinkFeedAnnotation] as string;
