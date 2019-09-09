@@ -5,7 +5,7 @@ products:
 languages:
 - csharp
 extensions:
-  contentType: samples
+  contentType: samples 
   technologies:
   - Microsoft Graph
   createdDate: 5/25/2017 5:03:53 PM
