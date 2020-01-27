@@ -215,5 +215,5 @@ pip-log.txt
 #Mr Developer
 .mr.developer.cfg
 
-#Appsettings.json file
-ConsoleApplication/appsettings.json
+# VS Code
+.vscode/
