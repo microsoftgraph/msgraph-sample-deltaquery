@@ -44,7 +44,7 @@ Write-Host "DONE" -ForeGroundColor Green
 Write-Host "Creating service principal..." -NoNewline
 
 # Create the app's service principal
-$servicePrincipal = New-AzureADServicePrincipal -AppId $app.AppId -Tags {WindowsAzureActiveDirectoryIntegratedApp}
+New-AzureADServicePrincipal -AppId $app.AppId -Tags {WindowsAzureActiveDirectoryIntegratedApp} | Out-Null
 
 Write-Host "DONE" -ForeGroundColor Green
 
