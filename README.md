@@ -12,7 +12,7 @@ extensions:
 ---
 # Microsoft Graph delta query sample
 
-This console application demonstrates how to make [delta queries](https://docs.microsoft.com/graph/delta-query-overview) to Microsoft Graph, allowing applications to request only changed entities within a target resource. This sample monitors changes of messages in the user's inbox.
+This console application demonstrates how to make [delta queries](https://docs.microsoft.com/graph/delta-query-overview) to Microsoft Graph, allowing applications to request only changed entities within a target resource. This sample monitors changes to the mail folders in a user's mailbox.
 
 ## How To Run This Sample
 
@@ -87,7 +87,43 @@ The [RegisterApp.ps1](RegisterApp.ps1) script uses the [Azure AD PowerShell for 
 
 ### Step 2: Configure the sample
 
+1. Open your command-line interface (CLI) in the directory that contains **DeltaQuery.csproj**.
+
+1. Run the following command.
+
+    ```Shell
+    dotnet user-secrets init
+    ```
+
+1. Run the following command to store your application ID (obtained in the previous step) to the secret manager Be sure to replace `YOUR_APP_ID` with your application ID.
+
+    ```Shell
+    dotnet user-secrets set AzureAppId YOUR_APP_ID
+    ```
+
 ### Step 3: Run the sample
+
+#### Option 1: Using Visual Studio Code
+
+1. Open the root folder of this sample using Visual Studio Code.
+
+1. On the **Debug** menu, choose **Start Debugging**.
+
+#### Option 2: From the command line
+
+1. Open your command-line interface (CLI) in the directory that contains **DeltaQuery.csproj**.
+
+1. Run the following command to build the sample.
+
+    ```Shell
+    dotnet build
+    ```
+
+1. Run the following command to run the sample.
+
+    ```Shell
+    dotnet run
+    ```
 
 ## Contributing
 
