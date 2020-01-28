@@ -4,6 +4,7 @@ using DeltaQuery.Authentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Graph;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace DeltaQuery
@@ -11,11 +12,16 @@ namespace DeltaQuery
     class Program
     {
         // The Microsoft Graph permission scopes used by the app
-        static string[] _scopes = { "User.Read", "Mail.Read" };
+        private static string[] _scopes = { "User.Read", "Mail.Read" };
 
         // The number of seconds to wait between delta queries
-        static int _pollIntervalInSecs = 30;
-        static GraphServiceClient _graphClient;
+        private static int _pollIntervalInSecs = 30;
+
+        // Graph client
+        private static GraphServiceClient _graphClient;
+
+        // In-memory "database" of mail folders
+        private static List<MailFolder> _localMailFolders = new List<MailFolder>();
 
         static async Task Main(string[] args)
         {
@@ -38,8 +44,6 @@ namespace DeltaQuery
                 .Request()
                 .GetAsync();
 
-            // TODO: Keep an in-memory dictionary of folder names and ids, use this to give more info
-            // Example: "Folder test renamed to test2" or "Folder test2 deleted" or "Folder foo moved to deleted items"
             while(true)
             {
                 if (deltaCollection.CurrentPage.Count <= 0)
@@ -51,24 +55,24 @@ namespace DeltaQuery
                     bool morePagesAvailable = false;
                     do
                     {
+                        // If there is a NextPageRequest, there are more pages
                         morePagesAvailable = deltaCollection.NextPageRequest != null;
                         foreach(var mailFolder in deltaCollection.CurrentPage)
                         {
-                            bool isDeleted = mailFolder.AdditionalData != null ?
-                                mailFolder.AdditionalData.ContainsKey("@removed") :
-                                false;
-
-                            Console.WriteLine($"Folder {mailFolder.DisplayName} {(isDeleted ? "deleted" : "created/updated")}");
+                            await ProcessChanges(mailFolder);
                         }
 
                         if (morePagesAvailable)
                         {
+                            // Get the next page of results
                             deltaCollection = await deltaCollection.NextPageRequest.GetAsync();
                         }
                     }
                     while (morePagesAvailable);
                 }
 
+                // Once we've iterated through all of the pages, there should
+                // be a delta link, which is used to request all changes since our last query
                 var deltaLink = deltaCollection.AdditionalData["@odata.deltaLink"];
                 if (!string.IsNullOrEmpty(deltaLink.ToString()))
                 {
@@ -77,6 +81,69 @@ namespace DeltaQuery
 
                     deltaCollection.InitializeNextPageRequest(_graphClient, deltaLink.ToString());
                     deltaCollection = await deltaCollection.NextPageRequest.GetAsync();
+                }
+            }
+        }
+
+        static async Task ProcessChanges(MailFolder mailFolder)
+        {
+            // Check if the local list of folders already contains this one
+            var localFolder = _localMailFolders.Find(f => f.Id == mailFolder.Id);
+
+            bool isDeleted = mailFolder.AdditionalData != null ?
+                mailFolder.AdditionalData.ContainsKey("@removed") :
+                false;
+
+            if (localFolder != null)
+            {
+                // In this case it's a delete or an update of a folder
+                // we already know about
+                if (isDeleted)
+                {
+                    // Remove the entry from the local list
+                    Console.WriteLine($"Folder {localFolder.DisplayName} deleted");
+                    _localMailFolders.Remove(localFolder);
+                }
+                else
+                {
+                    Console.WriteLine($"Folder {localFolder.DisplayName} updated:");
+
+                    // Was it renamed?
+                    if (string.Compare(localFolder.DisplayName, mailFolder.DisplayName) != 0)
+                    {
+                        Console.WriteLine($"  - Renamed to {mailFolder.DisplayName}");
+                    }
+
+                    // Was it moved?
+                    if (string.Compare(localFolder.ParentFolderId, mailFolder.ParentFolderId) != 0)
+                    {
+                        // Get the parent folder
+                        var parent = await _graphClient.Me
+                            .MailFolders[mailFolder.ParentFolderId]
+                            .Request()
+                            .GetAsync();
+
+                        Console.WriteLine($"  - Moved to {parent.DisplayName} folder");
+                    }
+
+                    // Remove old entry and add new one
+                    _localMailFolders.Remove(localFolder);
+                    _localMailFolders.Add(mailFolder);
+                }
+            }
+            else
+            {
+                // No local match
+                if (isDeleted)
+                {
+                    // Folder deleted, but we never knew about it anyway
+                    Console.WriteLine($"Unknown folder with ID {mailFolder.Id} deleted");
+                }
+                else
+                {
+                    // New folder, add to local list
+                    Console.WriteLine($"Folder {mailFolder.DisplayName} added");
+                    _localMailFolders.Add(mailFolder);
                 }
             }
         }
