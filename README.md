@@ -5,101 +5,127 @@ products:
 languages:
 - csharp
 extensions:
-  contentType: samples 
+  contentType: samples
   technologies:
   - Microsoft Graph
   createdDate: 5/25/2017 5:03:53 PM
 ---
-# ConsoleApp-MicrosoftGraphAPI-DeltaQuery-DotNet
+# Microsoft Graph delta query sample
 
-This console application demonstrates how to make Delta Query calls to the Graph API, allowing applications to request only changed data from Microsoft Graph tenants.
-
-The sample uses demonstates how graph calls can be made with the Graph SDK and how the reponses can be handled.
-
-The specific example used in this sample involves monitoring changes(addition and removal) of MailFolders in an individual's email account.
+This console application demonstrates how to make [delta queries](https://docs.microsoft.com/graph/delta-query-overview) to Microsoft Graph, allowing applications to request only changed entities within a target resource. This sample monitors changes to the mail folders in a user's mailbox.
 
 ## How To Run This Sample
 
 To run this sample you will need:
-- Visual Studio 2017
-- An Internet connection
-- An Azure Active Directory (Azure AD) tenant. For more information on how to get an Azure AD tenant, please see [How to get an Azure AD tenant](https://azure.microsoft.com/en-us/documentation/articles/active-directory-howto-tenant/) 
 
-### Step 1:  Clone or download this repository
+- The [.NET Core 3.1 SDK](https://dotnet.microsoft.com/download)
+- A user in a Microsoft 365 tenant with an Exchange Online mailbox.
 
-From your shell or command line:
+### Step 1: Register the sample application in Azure Active Directory
 
-`git clone https://github.com/microsoftgraph/ConsoleApp-DeltaQuery-DotNet`
+Before running the sample, you will need to create an app registration in Azure Active Directory to obtain an application ID. You can do this with the PowerShell script in this sample, or you can register it manually in the Azure Active Directory portal.
 
-### Step 2:  Register the sample application with your Azure Active Directory tenant
+#### Option 1: Register with PowerShell
 
-There is one project in this sample. To register it, you can:
+The [RegisterApp.ps1](RegisterApp.ps1) script uses the [Azure AD PowerShell for Graph module](https://docs.microsoft.com/powershell/azure/active-directory/install-adv2?view=azureadps-2.0) to create the app registration.
 
-- either follow the steps [Step 2: Register the sample with your Azure Active Directory tenant](#step-2-register-the-sample-with-your-azure-active-directory-tenant) and [Step 3:  Configure the sample to use your Azure AD tenant](#choose-the-azure-ad-tenant-where-you-want-to-create-your-applications)
-- or use PowerShell scripts that:
-  - **automatically** creates the Azure AD applications and related objects (passwords, permissions, dependencies) for you
-  - modify the Visual Studio projects' configuration files.
+1. Open Windows PowerShell in the root directory of this sample.
 
-If you want to use this automation:
+1. If you do not have the Azure AD PowerShell module installed, run the following command to install it:
 
-1. On Windows run PowerShell and navigate to the root of the cloned directory
-1. In PowerShell run:
+    ```PowerShell
+    Install-Module AzureAD
+    ```
 
-   ```PowerShell
-   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process -Force
-   ```
+1. Run the following command to set the execution policy for the current PowerShell window to allow the script to run.
 
-1. Run the script to create your Azure AD application and configure the code of the sample application accordinly.
+    ```PowerShell
+    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
+    ```
 
-   ```PowerShell
-   .\AppCreationScripts\Configure.ps1
-   ```
+1. Run the script with the following command.
 
-   > Other ways of running the scripts are described in [App Creation Scripts](./AppCreationScripts/AppCreationScripts.md)
+    ```PowerShell
+    ./RegisterApp.ps1
+    ```
 
-1. Open the Visual Studio solution and click start
+1. In the pop-up window, sign in using a Microsoft 365 user that has permission to register an application in Azure Active Directory.
 
-If you don't want to use this automation, follow the steps below
+1. The application ID is printed to the console.
 
-#### Choose the Azure AD tenant where you want to create your applications
+    ```PowerShell
+    App creation successful. Your app ID is: b730d25e-c81c-4046-a49c-ac56c07e930a
+    ```
 
-As a first step you'll need to:
+#### Option 2: Register with the Azure Active Directory admin center
 
-1. Sign in to the [Azure portal](https://portal.azure.com) using either a work or school account or a personal Microsoft account.
-1. If your account gives you access to more than one tenant, select your account in the top right corner, and set your portal session to the desired Azure AD tenant
-   (using **Switch Directory**).
-1. In the left-hand navigation pane, select the **Azure Active Directory** service, and then select **App registrations (Preview)**.
+1. Open a browser and navigate to the [Azure Active Directory admin center](https://aad.portal.azure.com) and login using a Microsoft 365 user that has permission to register an application in Azure Active Directory.
 
-#### Register the client app (ConsoleApp-DeltaQuery-DotNet)
+1. Select **Azure Active Directory** in the left-hand navigation, then select **App registrations** under **Manage**.
 
-1. In **App registrations (Preview)** page, select **Register an Application**.
-1. When the **Register an application page** appears, enter your application's registration information:
-   - In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `ConsoleApp-DeltaQuery-DotNet`.
-   - In the **Supported account types** section, select **Accounts in any organizational directory and personal Microsoft accounts (e.g. Skype, Xbox, Outlook.com)**.
-   - Select **Register** to create the application.
-1. On the app **Overview** page, find the **Application (client) ID** value and record it for later. You'll need it to configure the Visual Studio configuration file for this project.
-1. In the list of pages for the app, select **Authentication**
-   - In the *Suggested Redirect URIs for public clients(mobile,desktop)*, check the second box so that the app can work with the MSAL libs used in the application. (The box should contain the option *urn:ietf:wg:oauth:2.0:oob*). 
-1. In the list of pages for the app, select **API permissions**
-   - Click the **Add a permission** button and then,
-   - Ensure that the **Microsoft APIs** tab is selected
-   - In the *Commonly used Microsoft APIs* section, click on **Microsoft Graph**
-   - In the **Delegated permissions** section, ensure that the right permissions are checked: **Mail.Read**. Use the search box if necessary.
-   - Select the **Add permissions** button
+    ![A screenshot of the App registrations ](./images/aad-portal-app-registrations.png)
 
-### Step 3:  Configure the sample to use your Azure AD tenant
+1. Select **New registration**. On the **Register an application** page, set the values as follows.
 
-In the steps below, "ClientID" is the same as "Application ID" or "AppId".
+    - Set **Name** to `Delta Query Console Sample`.
+    - Set **Supported account types** to **Accounts in any organizational directory and personal Microsoft accounts**.
+    - Leave **Redirect URI** empty.
 
-Open the solution in Visual Studio to configure the projects
+    ![A screenshot of the Register an application page](./images/aad-register-an-app.png)
 
-#### Configure the client project
+1. Select **Register**. On the **Delta Query Console Sample** page, copy the value of the **Application (client) ID** and save it, you will need it in the next step.
 
-1. In the *ConsoleApplication* folder, rename the `appsettings.json.example` file to `appsettings.json`
-1. Open and edit the `appsettings.json` file to make the following change
-    1. Find the line where `ClientId` is set as `YOUR_CLIENT_ID_HERE` and replace the existing value with the application ID (clientId) of the `ConsoleApp-DeltaQuery-DotNet` application copied from the Azure portal.
+    ![A screenshot of the application ID of the new app registration](./images/aad-application-id.png)
 
-Clean the solution, rebuild the solution, and start it in the debugger.
+1. Select the **Add a Redirect URI** link. On the **Redirect URIs** page, locate the **Suggested Redirect URIs for public clients (mobile, desktop)** section. Select the `https://login.microsoftonline.com/common/oauth2/nativeclient` URI.
+
+    ![A screenshot of the Redirect URIs page](./images/aad-redirect-uris.png)
+
+1. Locate the **Default client type** section and change the **Treat application as a public client** toggle to **Yes**, then choose **Save**.
+
+    ![A screenshot of the Default client type section](./images/aad-default-client-type.png)
+
+### Step 2: Configure the sample
+
+1. Open your command-line interface (CLI) in the directory that contains **DeltaQuery.csproj**.
+
+1. Run the following command.
+
+    ```Shell
+    dotnet user-secrets init
+    ```
+
+1. Run the following command to store your application ID (obtained in the previous step) to the secret manager Be sure to replace `YOUR_APP_ID` with your application ID.
+
+    ```Shell
+    dotnet user-secrets set AzureAppId YOUR_APP_ID
+    ```
+
+### Step 3: Run the sample
+
+When the sample runs, it will prompt you to browse to a login URL and enter a device code. Once signed in, the app will check for changes to the mail folders in the user's mailbox every 30 seconds.
+
+#### Option 1: Using Visual Studio Code
+
+1. Open the root folder of this sample using Visual Studio Code.
+
+1. On the **Debug** menu, choose **Start Debugging**.
+
+#### Option 2: From the command line
+
+1. Open your command-line interface (CLI) in the directory that contains **DeltaQuery.csproj**.
+
+1. Run the following command to build the sample.
+
+    ```Shell
+    dotnet build
+    ```
+
+1. Run the following command to run the sample.
+
+    ```Shell
+    dotnet run
+    ```
 
 ## Contributing
 
@@ -107,20 +133,4 @@ If you'd like to contribute to this sample, see [CONTRIBUTING.MD](/CONTRIBUTING.
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
-## Questions and comments
-
-We'd love to get your feedback about the Microsoft Graph Webhooks sample using WebJobs SDK. You can send your questions and suggestions to us in the [Issues](https://github.com/microsoftgraph/ConsoleApp-DeltaQuery-DotNet/issues) section of this repository.
-
-Questions about Microsoft Graph in general should be posted to [Stack Overflow](https://stackoverflow.com/questions/tagged/MicrosoftGraph). Make sure that your questions or comments are tagged with *[MicrosoftGraph]*.
-
-If you have a feature suggestion, please post your idea on our [User Voice](https://officespdev.uservoice.com/) page, and vote for your suggestions there.
-
-## Additional resources
-
-- [AAD DQ sample](https://github.com/Azure-Samples/active-directory-dotnet-graphapi-diffquery)
-- [Working with Delta Query in Microsoft Graph](https://developer.microsoft.com/en-us/graph/docs/concepts/delta_query_overview)
-- [Microsoft Graph developer site](https://developer.microsoft.com/en-us/graph/)
-- [Call Microsoft Graph in an ASP.NET MVC app](https://developer.microsoft.com/en-us/graph/docs/platform/aspnetmvc)
-- [MSAL.NET](https://aka.ms/msal-net)
-
-Copyright (c) 2019 Microsoft Corporation. All rights reserved.
+Copyright (c) 2020 Microsoft Corporation. All rights reserved.
