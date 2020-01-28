@@ -103,6 +103,8 @@ The [RegisterApp.ps1](RegisterApp.ps1) script uses the [Azure AD PowerShell for 
 
 ### Step 3: Run the sample
 
+When the sample runs, it will prompt you to browse to a login URL and enter a device code. Once signed in, the app will check for changes to the mail folders in the user's mailbox every 30 seconds.
+
 #### Option 1: Using Visual Studio Code
 
 1. Open the root folder of this sample using Visual Studio Code.
