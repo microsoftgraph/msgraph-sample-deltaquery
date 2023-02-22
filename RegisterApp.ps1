@@ -1,68 +1,87 @@
-[CmdletBinding()]
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT license.
+
 param(
-    [PSCredential] $Credential,
-    [Parameter(Mandatory=$False, HelpMessage='Tenant ID (This is a GUID which represents the "Directory ID" of the AzureAD tenant into which you want to create the apps')]
-    [string] $tenantId
+  [Parameter(Mandatory=$true,
+  HelpMessage="The friendly name of the app registration")]
+  [String]
+  $AppName,
+
+  [Parameter(Mandatory=$false,
+  HelpMessage="The sign in audience for the app")]
+  [ValidateSet("AzureADMyOrg", "AzureADMultipleOrgs", `
+  "AzureADandPersonalMicrosoftAccount", "PersonalMicrosoftAccount")]
+  [String]
+  $SignInAudience = "AzureADandPersonalMicrosoftAccount",
+
+  [Parameter(Mandatory=$false)]
+  [Switch]
+  $StayConnected = $false
 )
 
-<#
- This script creates the Azure AD application needed for this sample.
-
- Before running this script you need to install the AzureAD cmdlets as an administrator.
- For this:
- 1) Run Powershell as an administrator
- 2) In the PowerShell window, type: Install-Module AzureAD
-#>
-
-# If user passed credentials, use those
-# Otherwise, prompt the user to sign in
-if ($Credential)
+# Tenant to use in authentication.
+# See https://learn.microsoft.com/azure/active-directory/develop/v2-oauth2-device-code#device-authorization-request
+$authTenant = switch ($SignInAudience)
 {
-    $session = Connect-AzureAD -Credential $Credential
+  "AzureADMyOrg" { "tenantId" }
+  "AzureADMultipleOrgs" { "organizations" }
+  "AzureADandPersonalMicrosoftAccount" { "common" }
+  "PersonalMicrosoftAccount" { "consumers" }
+  default { "invalid" }
+}
+
+if ($authTenant -eq "invalid")
+{
+  Write-Host -ForegroundColor Red "Invalid sign in audience:" $SignInAudience
+  Exit
+}
+
+# Requires an admin
+Connect-MgGraph -Scopes "Application.ReadWrite.All User.Read" -UseDeviceAuthentication -ErrorAction Stop
+
+# Get context for access to tenant ID
+$context = Get-MgContext -ErrorAction Stop
+
+if ($authTenant -eq "tenantId")
+{
+  $authTenant = $context.TenantId
+}
+
+# Create app registration
+$appRegistration = New-MgApplication -DisplayName $AppName -SignInAudience $SignInAudience `
+ -IsFallbackPublicClient -ErrorAction Stop
+Write-Host -ForegroundColor Cyan "App registration created with app ID" $appRegistration.AppId
+
+# Create corresponding service principal
+if ($SignInAudience -ne "PersonalMicrosoftAccount")
+{
+  New-MgServicePrincipal -AppId $appRegistration.AppId -ErrorAction SilentlyContinue `
+   -ErrorVariable SPError | Out-Null
+  if ($SPError)
+  {
+    Write-Host -ForegroundColor Red "A service principal for the app could not be created."
+    Write-Host -ForegroundColor Red $SPError
+    Exit
+  }
+
+  Write-Host -ForegroundColor Cyan "Service principal created"
+}
+
+Write-Host
+Write-Host -ForegroundColor Green "SUCCESS"
+Write-Host -ForegroundColor Cyan -NoNewline "Client ID: "
+Write-Host -ForegroundColor Yellow $appRegistration.AppId
+Write-Host -ForegroundColor Cyan -NoNewline "Tenant ID: "
+Write-Host -ForegroundColor Yellow $authTenant
+
+if ($StayConnected -eq $false)
+{
+  Disconnect-MgGraph
+  Write-Host "Disconnected from Microsoft Graph"
 }
 else
 {
-    $session = Connect-AzureAD
+  Write-Host
+  Write-Host -ForegroundColor Yellow `
+   "The connection to Microsoft Graph is still active. To disconnect, use Disconnect-MgGraph"
 }
-
-# Get the user's object from Azure AD, we need the object ID
-$user = Get-AzureADUser -ObjectId $session.Account.Id
-
-Write-Host "Creating app registration..." -NoNewline
-
-# Create the application
-# Reply url: This is the standard reply URL used by MSAL with the device code flow
-# Available to other tenants: Set to true here for simplification (don't need to specify tenant ID)
-# Public client: Necessary to enable the device code flow
-$app = New-AzureADApplication -DisplayName "Delta Query Console Sample" `
-                              -ReplyUrls "https://login.microsoftonline.com/common/oauth2/nativeclient" `
-                              -AvailableToOtherTenants $true `
-                              -PublicClient $true
-
-Write-Host "DONE" -ForeGroundColor Green
-
-Write-Host "Creating service principal..." -NoNewline
-
-# Create the app's service principal
-New-AzureADServicePrincipal -AppId $app.AppId -Tags {WindowsAzureActiveDirectoryIntegratedApp} | Out-Null
-
-Write-Host "DONE" -ForeGroundColor Green
-
-# If the user was not added as an owner, add them now
-$owner = Get-AzureADApplicationOwner -ObjectId $app.ObjectId
-if ($null -eq $owner)
-{
-    Write-Host "Adding $($user.DisplayName) (object ID $($user.ObjectId)) as owner..." -NoNewline
-
-    # Add the user as the owner of the application
-    # This conforms with the behavior in the Azure portal
-    Add-AzureADApplicationOwner -ObjectId $app.ObjectId -RefObjectId $user.ObjectId
-
-    Write-Host "DONE" -ForeGroundColor Green
-}
-
-Write-Host ""
-Write-Host "App creation successful. Your app ID is: " -NoNewline
-Write-Host $($app.AppId) -ForegroundColor Cyan
-
-Disconnect-AzureAD
