@@ -15,6 +15,8 @@ extensions:
 ---
 # Microsoft Graph delta query sample
 
+[![dotnet build](https://github.com/microsoftgraph/msgraph-sample-deltaquery/actions/workflows/dotnet.yml/badge.svg)](https://github.com/microsoftgraph/msgraph-sample-deltaquery/actions/workflows/dotnet.yml) ![License.](https://img.shields.io/badge/license-MIT-green.svg)
+
 This console application demonstrates how to make [delta queries](https://learn.microsoft.com/graph/delta-query-overview) to Microsoft Graph, allowing applications to request only changed entities within a target resource. This sample monitors changes to the mail folders in a user's mailbox.
 
 ## How To Run This Sample
