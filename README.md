@@ -1,7 +1,10 @@
 ---
 page_type: sample
+description: This console application demonstrates how to make delta queries to Microsoft Graph, allowing applications to request only changed entities within a target resource. This sample monitors changes to the mail folders in a user's mailbox.
 products:
 - ms-graph
+- microsoft-graph-mail-api
+- office-exchange-online
 languages:
 - csharp
 extensions:
@@ -12,49 +15,47 @@ extensions:
 ---
 # Microsoft Graph delta query sample
 
-This console application demonstrates how to make [delta queries](https://docs.microsoft.com/graph/delta-query-overview) to Microsoft Graph, allowing applications to request only changed entities within a target resource. This sample monitors changes to the mail folders in a user's mailbox.
+This console application demonstrates how to make [delta queries](https://learn.microsoft.com/graph/delta-query-overview) to Microsoft Graph, allowing applications to request only changed entities within a target resource. This sample monitors changes to the mail folders in a user's mailbox.
 
 ## How To Run This Sample
 
 To run this sample you will need:
 
-- The [.NET Core 3.1 SDK](https://dotnet.microsoft.com/download)
+- The [.NET 7.0 SDK](https://dotnet.microsoft.com/download)
 - A user in a Microsoft 365 tenant with an Exchange Online mailbox.
 
 ### Step 1: Register the sample application in Azure Active Directory
 
-Before running the sample, you will need to create an app registration in Azure Active Directory to obtain an application ID. You can do this with the PowerShell script in this sample, or you can register it manually in the Azure Active Directory portal.
+Before running the sample, you will need to create an app registration in Azure Active Directory to obtain a client ID. You can do this with the PowerShell script in this sample, or you can register it manually in the Azure Active Directory portal.
 
 #### Option 1: Register with PowerShell
 
-The [RegisterApp.ps1](RegisterApp.ps1) script uses the [Azure AD PowerShell for Graph module](https://docs.microsoft.com/powershell/azure/active-directory/install-adv2?view=azureadps-2.0) to create the app registration.
+The [RegisterApp.ps1](RegisterApp.ps1) script uses the [Microsoft Graph PowerShell SDK](https://learn.microsoft.com/microsoftgraph/overview) to create the app registration. You will need to [install the Microsoft Graph PowerShell SDK](https://learn.microsoft.com/powershell/microsoftgraph/installation) to use this script.
 
-1. Open Windows PowerShell in the root directory of this sample.
+> **IMPORTANT**: The PowerShell script requires a work/school account with the **Application administrator**, **Cloud application administrator**, or **Global administrator** role. If your account has the **Application developer** role, you can register in the Azure AD admin center.
 
-1. If you do not have the Azure AD PowerShell module installed, run the following command to install it:
-
-    ```PowerShell
-    Install-Module AzureAD
-    ```
+1. Open [PowerShell 7](https://learn.microsoft.com/powershell/scripting/install/installing-powershell-on-windows) in the root directory of this sample.
 
 1. Run the following command to set the execution policy for the current PowerShell window to allow the script to run.
 
-    ```PowerShell
+    ```powershell
     Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
     ```
 
 1. Run the script with the following command.
 
-    ```PowerShell
-    ./RegisterApp.ps1
+    ```powershell
+    ./RegisterApp.ps1 -AppName "Delta Query Console Sample"
     ```
 
-1. In the pop-up window, sign in using a Microsoft 365 user that has permission to register an application in Azure Active Directory.
+1. Follow the prompt to open `https://microsoft.com/devicelogin` in a browser, enter the provided code, and complete the authentication process.
 
 1. The application ID is printed to the console.
 
-    ```PowerShell
-    App creation successful. Your app ID is: b730d25e-c81c-4046-a49c-ac56c07e930a
+    ```powershell
+    SUCCESS
+    Client ID: 2fb1652f-a9a0-4db9-b220-b224b8d9d38b
+    Tenant ID: common
     ```
 
 #### Option 2: Register with the Azure Active Directory admin center
@@ -77,29 +78,13 @@ The [RegisterApp.ps1](RegisterApp.ps1) script uses the [Azure AD PowerShell for 
 
     ![A screenshot of the application ID of the new app registration](./images/aad-application-id.png)
 
-1. Select the **Add a Redirect URI** link. On the **Redirect URIs** page, locate the **Suggested Redirect URIs for public clients (mobile, desktop)** section. Select the `https://login.microsoftonline.com/common/oauth2/nativeclient` URI.
-
-    ![A screenshot of the Redirect URIs page](./images/aad-redirect-uris.png)
-
-1. Locate the **Default client type** section and change the **Treat application as a public client** toggle to **Yes**, then choose **Save**.
+1. Select **Authentication** under **Manage**. Locate the **Advanced settings** section and change the **Allow public client flows** toggle to **Yes**, then choose **Save**.
 
     ![A screenshot of the Default client type section](./images/aad-default-client-type.png)
 
 ### Step 2: Configure the sample
 
-1. Open your command-line interface (CLI) in the directory that contains **DeltaQuery.csproj**.
-
-1. Run the following command.
-
-    ```Shell
-    dotnet user-secrets init
-    ```
-
-1. Run the following command to store your application ID (obtained in the previous step) to the secret manager Be sure to replace `YOUR_APP_ID` with your application ID.
-
-    ```Shell
-    dotnet user-secrets set AzureAppId YOUR_APP_ID
-    ```
+Open [appsettings.json](src/appsettings.json) and replace `YOUR_CLIENT_ID_HERE` with the client ID of your app registration.
 
 ### Step 3: Run the sample
 
@@ -127,10 +112,10 @@ When the sample runs, it will prompt you to browse to a login URL and enter a de
     dotnet run
     ```
 
-## Contributing
-
-If you'd like to contribute to this sample, see [CONTRIBUTING.MD](/CONTRIBUTING.md).
+## Code of conduct
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
-Copyright (c) 2020 Microsoft Corporation. All rights reserved.
+## Disclaimer
+
+**THIS CODE IS PROVIDED _AS IS_ WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.**
