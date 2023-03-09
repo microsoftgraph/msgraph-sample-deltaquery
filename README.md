@@ -86,7 +86,15 @@ The [RegisterApp.ps1](RegisterApp.ps1) script uses the [Microsoft Graph PowerShe
 
 ### Step 2: Configure the sample
 
-Open [appsettings.json](src/appsettings.json) and replace `YOUR_CLIENT_ID_HERE` with the client ID of your app registration.
+Open [appsettings.json](src/appsettings.json) and replace `YOUR_CLIENT_ID_HERE` with the client ID of your app registration. Update other settings as needed.
+
+| Setting | Description |
+|---------|-------------|
+| `clientId` | The client ID of your app registration |
+| `tenantId` | If you registered your application as a [single tenant app](https://learn.microsoft.com/azure/active-directory/develop/single-and-multi-tenant-apps), add your Azure tenant ID here. Otherwise, leave as `common`. |
+| `graphUserScopes` | The Microsoft Graph permission scopes needed by the app. |
+| `pollInterval` | The number of seconds to wait between poll requests |
+| `authRecordCachePath` | Path to a file to cache the [authentication record](#authentication-record-cache). Set to empty string to disable authentication caching. |
 
 ### Step 3: Run the sample
 
@@ -113,6 +121,12 @@ When the sample runs, it will prompt you to browse to a login URL and enter a de
     ```Shell
     dotnet run
     ```
+
+### Authentication record cache
+
+The first time you run this sample, it will prompt you to authenticate in your browser. Your authentication record will be persisted to disk so that if you run the sample again, the app will silently authenticate. You can make the app reauthenticate by deleting the authentication cache file before running the sample.
+
+To disable authentication caching, set the `authRecordCachePath` value in appsettings.json to an empty string.
 
 ## Code of conduct
 

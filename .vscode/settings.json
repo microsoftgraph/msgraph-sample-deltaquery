@@ -1,0 +1,9 @@
+{
+    "cSpell.words": [
+        "Deltalink",
+        "deltaquery"
+    ],
+    "[csharp]": {
+        "editor.formatOnType": true
+    }
+}
